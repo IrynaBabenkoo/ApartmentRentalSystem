@@ -1,0 +1,35 @@
+﻿@model ApartmentRentalSystem.Domain.Entities.TimeUnit
+
+@{
+    ViewData["Title"] = "Додати одиницю часу";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3">
+            <h4 class="mb-0">Додати нову одиницю часу</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group mb-4">
+                    <label class="control-label fw-bold">Назва (година, доба, місяць, рік)</label>
+                    <input asp-for="Name" class="form-control form-control-lg shadow-sm" placeholder="Введіть назву" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm">Створити</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 shadow-sm">Назад до списку</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

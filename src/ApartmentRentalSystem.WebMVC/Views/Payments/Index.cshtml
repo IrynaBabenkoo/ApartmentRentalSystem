@@ -1,0 +1,60 @@
+﻿@model IEnumerable<ApartmentRentalSystem.Domain.Entities.Payment>
+
+@{
+    ViewData["Title"] = "Платежі";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary fw-bold">Список платежів</h2>
+        <a asp-action="Create" class="btn btn-primary shadow-sm">Додати новий платіж</a>
+    </div>
+
+    <table class="table table-hover border shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Сума</th>
+                <th>Валюта</th>
+                <th>Статус</th>
+                <th>Дата оплати</th>
+                <th>ID Бронювання</th>
+                <th>Метод</th>
+                <th class="text-end">Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-bold text-dark">
+                        @Html.DisplayFor(modelItem => item.Amount)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Currency)
+                    </td>
+                    <td>
+                        <span class="badge @(item.PaymentStatus.ToString() == "Paid" ? "bg-success" : "bg-warning text-dark")">
+                            @Html.DisplayFor(modelItem => item.PaymentStatus)
+                        </span>
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.PaidAt)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Reservation.Id)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Method.Name)
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">Змінити</a>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Деталі</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Видалити</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

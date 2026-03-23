@@ -1,0 +1,79 @@
+﻿@model ApartmentRentalSystem.Domain.Entities.Reservation
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Reservation</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="ApartmentId" class="control-label"></label>
+                <select asp-for="ApartmentId" class ="form-control" asp-items="ViewBag.ApartmentId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="GuestId" class="control-label"></label>
+                <select asp-for="GuestId" class ="form-control" asp-items="ViewBag.GuestId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="StatusId" class="control-label"></label>
+                <select asp-for="StatusId" class ="form-control" asp-items="ViewBag.StatusId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="UnitId" class="control-label"></label>
+                <select asp-for="UnitId" class ="form-control" asp-items="ViewBag.UnitId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="UnitsCount" class="control-label"></label>
+                <input asp-for="UnitsCount" class="form-control" />
+                <span asp-validation-for="UnitsCount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartAt" class="control-label"></label>
+                <input asp-for="StartAt" class="form-control" />
+                <span asp-validation-for="StartAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndAt" class="control-label"></label>
+                <input asp-for="EndAt" class="form-control" />
+                <span asp-validation-for="EndAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PriceTypeIdSnapshot" class="control-label"></label>
+                <input asp-for="PriceTypeIdSnapshot" class="form-control" />
+                <span asp-validation-for="PriceTypeIdSnapshot" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UnitAmountSnapshot" class="control-label"></label>
+                <input asp-for="UnitAmountSnapshot" class="form-control" />
+                <span asp-validation-for="UnitAmountSnapshot" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CurrencySnapshot" class="control-label"></label>
+                <input asp-for="CurrencySnapshot" class="form-control" />
+                <span asp-validation-for="CurrencySnapshot" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TotalPrice" class="control-label"></label>
+                <input asp-for="TotalPrice" class="form-control" />
+                <span asp-validation-for="TotalPrice" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,55 @@
+﻿@model ApartmentRentalSystem.Domain.Entities.User
+
+@{
+    ViewData["Title"] = "Створення користувача";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3">
+            <h4 class="mb-0">Створити нового користувача</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label fw-bold">Повне ім'я (ПІБ)</label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label fw-bold">Електронна пошта</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label fw-bold">Номер телефону</label>
+                    <input asp-for="Phone" class="form-control" />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="control-label fw-bold">Роль у системі</label>
+                    <select asp-for="RoleId" class="form-select border-primary" asp-items="ViewBag.RoleId">
+                        <option value="">-- Оберіть роль --</option>
+                    </select>
+                    <span asp-validation-for="RoleId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group d-flex gap-2">
+                    <input type="submit" value="Створити" class="btn btn-primary px-4 shadow-sm" />
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 shadow-sm">Назад до списку</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

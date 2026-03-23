@@ -1,0 +1,38 @@
+﻿@model IEnumerable<ApartmentRentalSystem.Domain.Entities.PaymentMethod>
+
+@{
+    ViewData["Title"] = "Методи оплати";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary fw-bold">Методи оплати</h2>
+        <a asp-action="Create" class="btn btn-primary shadow-sm">Додати метод</a>
+    </div>
+
+    <table class="table table-hover border shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-4">Назва методу</th>
+                <th class="text-end pe-4">Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="ps-4 fw-bold align-middle">
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="btn-group">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">Змінити</a>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Деталі</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Видалити</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
