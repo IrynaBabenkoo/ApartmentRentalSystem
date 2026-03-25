@@ -1,12 +1,12 @@
 ﻿@model ApartmentRentalSystem.Domain.Entities.PaymentMethod
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Додати спосіб оплати";
 }
 
-<h1>Create</h1>
+<h1>Створити</h1>
 
-<h4>PaymentMethod</h4>
+<h4>Спосіб оплати</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -17,17 +17,19 @@
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+            <div class="form-group mt-3">
+                <input type="submit" value="Створити" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="mt-2">
+    <a asp-action="Index">Назад до списку</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -5,13 +5,11 @@
 }
 
 <div class="container mt-4">
-    @* Заголовок з твоїм класом text-primary та синьою кнопкою *@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="text-primary fw-bold">Керування житлом</h2>
         <a asp-action="Create" class="btn btn-primary shadow-sm">Додати нове житло</a>
     </div>
 
-    @* Таблиця з твоїми класами table-hover, border та shadow-sm *@
     <table class="table table-hover border shadow-sm align-middle">
         <thead class="table-light">
             <tr>
@@ -27,7 +25,6 @@
             @foreach (var item in Model)
             {
                 <tr>
-                    @* Жирний текст у першій колонці, як у методах оплати *@
                     <td class="ps-4 fw-bold">
                         @Html.DisplayFor(modelItem => item.Title) <br />
                         <small class="text-muted fw-normal">@Html.DisplayFor(modelItem => item.Address)</small>
@@ -51,7 +48,6 @@
                     <td>
                         @Html.DisplayFor(modelItem => item.HousingType.Name)
                     </td>
-                    @* Твої фірмові кольорові кнопки-рамки *@
                     <td class="text-end pe-4">
                         <div class="btn-group">
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">Змінити</a>

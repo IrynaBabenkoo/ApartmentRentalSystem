@@ -1,12 +1,12 @@
 ﻿@model ApartmentRentalSystem.Domain.Entities.HousingType
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Редагування типу житла";
 }
 
-<h1>Edit</h1>
+<h1>Редагувати</h1>
 
-<h4>HousingType</h4>
+<h4>Тип житла</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -18,17 +18,19 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="form-group mt-3">
+                <input type="submit" value="Зберегти" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="mt-2">
+    <a asp-action="Index">Назад до списку</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
