@@ -1,0 +1,102 @@
+﻿@page
+@using ApartmentRentalSystem.WebMVC.Data.Identity
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.DependencyInjection
+@inject SignInManager<ApplicationUser> SignInManager
+@model CustomLoginModel
+@{
+    ViewData["Title"] = "Вхід";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                @* Тільки фіолетовий блок та кругла іконка *@
+                <div class="card-header bg-primary py-5 d-flex align-items-center justify-content-center" style="height: 180px; border-bottom: none;">
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 80px; height: 80px;">
+                        <i class="fa-solid fa-right-to-bracket fa-2x text-primary"></i>
+                    </div>
+                </div>
+                <div class="card-body p-5">
+                    <form id="account" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control border-light shadow-sm" style="background-color: #f8f9ff;" placeholder="name@example.com" required />
+                            <label><i class="fa-solid fa-envelope me-2 text-muted"></i>Електронна пошта</label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Password" type="password" class="form-control border-light shadow-sm" style="background-color: #f8f9ff;" placeholder="пароль" required />
+                            <label><i class="fa-solid fa-lock me-2 text-muted"></i>Пароль</label>
+                        </div>
+
+                        @* Збережено функціонал "Забули пароль" та "Запам'ятати" *@
+                        <div class="checkbox mb-4 d-flex justify-content-between align-items-center px-1">
+                            <label class="form-label mb-0 small text-muted">
+                                <input class="form-check-input me-1" asp-for="Input.RememberMe" /> Запам'ятати мене
+                            </label>
+                            <a class="text-primary text-decoration-none small fw-bold" asp-page="./ForgotPassword">Забули пароль?</a>
+                        </div>
+
+                        <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary shadow-sm fw-bold rounded-pill py-3 fs-6">
+                            УВІЙТИ
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-4 bg-white border-top">
+                    <div class="small text-muted">
+                        Немає акаунту? <a class="text-primary text-decoration-none fw-bold" asp-page="./Register">Зареєструватися!</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public class CustomLoginModel : Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    {
+        [Microsoft.AspNetCore.Mvc.BindProperty]
+        public InputModel Input { get; set; }
+
+        public string ReturnUrl { get; set; }
+
+        public class InputModel
+        {
+            public string Email { get; set; }
+            public string Password { get; set; }
+            public bool RememberMe { get; set; }
+        }
+
+        public void OnGet(string returnUrl = null)
+        {
+            ReturnUrl = returnUrl ?? Url.Content("~/");
+        }
+
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        {
+            returnUrl ??= Url.Content("~/");
+
+            if (ModelState.IsValid && Input != null)
+            {
+                var signInManager = HttpContext.RequestServices.GetRequiredService<SignInManager<ApplicationUser>>();
+
+                var result = await signInManager.PasswordSignInAsync(
+                    Input.Email,
+                    Input.Password,
+                    Input.RememberMe,
+                    lockoutOnFailure: false);
+
+                if (result.Succeeded)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+            }
+
+            ModelState.AddModelError(string.Empty, "Невірний логін або пароль.");
+            return Page();
+        }
+    }
+}

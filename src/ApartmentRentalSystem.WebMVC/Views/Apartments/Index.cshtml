@@ -1,62 +1,331 @@
 ﻿@model IEnumerable<ApartmentRentalSystem.Domain.Entities.Apartment>
 
 @{
-    ViewData["Title"] = "Список житла";
+    ViewData["Title"] = ViewBag.PageTitle ?? "Каталог житла";
+    bool isOwner = ViewBag.IsOwner ?? false;
+    string pageTitle = ViewBag.PageTitle ?? "Каталог житла";
+    string pageSubtitle = ViewBag.PageSubtitle ?? "Переглядайте доступні варіанти та знаходьте житло для своєї поїздки.";
+    string? searchCity = ViewBag.SearchCity as string;
+    decimal? maxPrice = ViewBag.MaxPrice as decimal?;
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary fw-bold">Керування житлом</h2>
-        <a asp-action="Create" class="btn btn-primary shadow-sm">Додати нове житло</a>
-    </div>
+<section class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="page-title mb-1">@pageTitle</h1>
+            <p class="page-subtitle mb-0">@pageSubtitle</p>
+        </div>
 
-    <table class="table table-hover border shadow-sm align-middle">
-        <thead class="table-light">
-            <tr>
-                <th class="ps-4">Назва / Адреса</th>
-                <th>Місто</th>
-                <th class="text-center">Гості</th>
-                <th>Статус</th>
-                <th>Тип</th>
-                <th class="text-end pe-4">Дії</th>
-            </tr>
-        </thead>
-        <tbody>
+        @if (isOwner)
+        {
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="Create" class="btn btn-primary px-4 py-2 fw-bold">
+                <i class="fa-solid fa-plus me-2"></i>Додати об'єкт
+            </a>
+
+            <a asp-action="Import" class="btn btn-outline-primary px-4 py-2 fw-bold">
+                <i class="fa-solid fa-file-arrow-up me-2"></i>Завантажити з файлу
+            </a>
+
+            <a asp-action="Export" class="btn btn-outline-primary px-4 py-2 fw-bold">
+                <i class="fa-solid fa-file-excel me-2"></i>Експортувати у файл
+            </a>
+        </div>
+        }
+    </div>
+</section>
+
+<section class="home-section-card mb-4">
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <h3 class="details-section-title mb-3">Кількість оголошень по містах</h3>
+            <div id="countByCityChart"></div>
+        </div>
+
+        <div class="col-lg-6">
+            <h3 class="details-section-title mb-3">Кількість оголошень за типом житла</h3>
+            <div id="countByHousingTypeChart"></div>
+        </div>
+    </div>
+</section>
+
+@if (!isOwner)
+{
+    <section class="home-section-card mb-4">
+        <form method="get" asp-action="Index">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label text-muted fw-bold">Місто</label>
+                    <input type="text"
+                           name="searchCity"
+                           value="@searchCity"
+                           class="form-control form-soft-bg"
+                           placeholder="Введіть місто" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label text-muted fw-bold">Максимальна ціна</label>
+                    <input type="number"
+                           name="maxPrice"
+                           value="@(maxPrice?.ToString() ?? "")"
+                           class="form-control form-soft-bg"
+                           placeholder="Наприклад, 2000" />
+                </div>
+
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="fa-solid fa-magnifying-glass me-2"></i>Пошук
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+}
+
+<section class="home-section-card mb-5">
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
             @foreach (var item in Model)
             {
-                <tr>
-                    <td class="ps-4 fw-bold">
-                        @Html.DisplayFor(modelItem => item.Title) <br />
-                        <small class="text-muted fw-normal">@Html.DisplayFor(modelItem => item.Address)</small>
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.City)
-                    </td>
-                    <td class="text-center">
-                        @Html.DisplayFor(modelItem => item.MaxGuests)
-                    </td>
-                    <td>
-                        @if (item.IsActive)
-                        {
-                            <span class="text-success fw-bold">Активно</span>
-                        }
-                        else
-                        {
-                            <span class="text-secondary">Неактивно</span>
-                        }
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.HousingType.Name)
-                    </td>
-                    <td class="text-end pe-4">
-                        <div class="btn-group">
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">Змінити</a>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Деталі</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Видалити</a>
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden hover-card home-card">
+                        <div class="position-relative">
+                                    <img src="@(string.IsNullOrEmpty(item.ImagePath) ? "/images/apartments/default-apartment.jpg" : item.ImagePath)"
+                                 class="card-img-top home-card-img"
+                                 alt="@item.Title" />
+
+                            @if (isOwner && !item.IsActive)
+                            {
+                                <span class="position-absolute top-0 start-0 m-3 badge rounded-pill bg-danger shadow-sm">
+                                    Неактивне
+                                </span>
+                            }
                         </div>
-                    </td>
-                </tr>
+
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="mb-2">
+                                <span class="text-uppercase small fw-bold text-primary">
+                                    @(item.HousingType?.Name ?? "Житло")
+                                </span>
+                            </div>
+
+                            <h5 class="card-title fw-bold text-dark mb-2">@item.Title</h5>
+
+                            <p class="text-muted small mb-3">
+                                <i class="fa-solid fa-location-dot me-1 text-primary"></i>
+                                @item.City, @item.Address
+                            </p>
+
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <span class="badge bg-light text-dark rounded-pill border px-3 fw-normal">
+                                    <i class="fa-solid fa-users me-1 text-primary"></i>
+                                    До @item.MaxGuests гостей
+                                </span>
+                            </div>
+
+                            <div class="mt-auto border-top pt-3 d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                                <div>
+                                    @if (item.Pricings != null && item.Pricings.Any())
+                                    {
+                                        var price = item.Pricings.OrderByDescending(p => p.ValidFrom).First();
+                                        <span class="h5 fw-bold text-primary mb-0">@price.Amount @price.Currency</span>
+                                        <small class="text-muted">/ @(price.PriceType?.TimeUnit?.Name?.ToLower() ?? "доба")</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="h5 fw-bold text-muted mb-0">Ціна не вказана</span>
+                                    }
+                                </div>
+
+                                @if (isOwner)
+                                {
+                                    <div class="apartment-actions">
+                                        <a asp-action="Edit" asp-route-id="@item.Id"
+                                           class="btn btn-outline-secondary btn-sm action-btn" title="Редагувати">
+                                            <i class="fa-solid fa-pen me-1"></i>Редагувати
+                                        </a>
+
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                           class="btn btn-primary btn-sm action-btn" title="Переглянути оголошення">
+                                            <i class="fa-solid fa-arrow-right me-1"></i>Переглянути
+                                        </a>
+
+                                        <button type="button"
+                                                class="btn btn-outline-primary btn-sm icon-btn"
+                                                title="Видалити"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteApartmentModal"
+                                                data-apartment-id="@item.Id"
+                                                data-apartment-title="@item.Title">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a asp-action="Details" asp-route-id="@item.Id"
+                                       class="btn btn-primary btn-sm action-btn" title="Переглянути оголошення">
+                                        <i class="fa-solid fa-arrow-right me-1"></i>Переглянути
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
-</div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div class="empty-icon mx-auto mb-3">
+                <i class="fa-solid fa-house-circle-exclamation"></i>
+            </div>
+
+            @if (isOwner)
+            {
+                <h5 class="fw-bold text-dark">У вас ще немає доданих об'єктів</h5>
+                <p class="text-muted mb-4">
+                    Почніть із додавання першого житла до системи.
+                </p>
+
+                <a asp-action="Create" class="btn btn-primary px-4 fw-bold">
+                    <i class="fa-solid fa-plus me-2"></i>Додати об'єкт
+                </a>
+            }
+            else
+            {
+                <h5 class="fw-bold text-dark">Наразі немає доступних варіантів</h5>
+                <p class="text-muted mb-0">
+                    Спробуйте змінити параметри пошуку або перегляньте пізніше.
+                </p>
+            }
+        </div>
+    }
+</section>
+
+@if (isOwner)
+{
+    <div class="modal fade" id="deleteApartmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content custom-delete-modal">
+                <div class="modal-body position-relative pt-4 pb-3">
+                    <button type="button"
+                            class="btn-close position-absolute top-0 end-0 m-3"
+                            data-bs-dismiss="modal"
+                            aria-label="Закрити"></button>
+
+                    <p class="mb-0 pe-4">
+                        Ви дійсно хочете видалити оголошення
+                        <strong id="deleteApartmentTitle"></strong>?
+                    </p>
+                </div>
+
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-4" data-bs-dismiss="modal">
+                        Скасувати
+                    </button>
+
+                    <form id="deleteApartmentForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="fa-solid fa-trash me-2"></i>Видалити
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            drawCountByCityChart();
+            drawCountByHousingTypeChart();
+        }
+
+        function drawCountByCityChart() {
+            fetch('/api/charts/countByCity')
+                .then(response => response.json())
+                .then(data => {
+                    const dataTable = new google.visualization.DataTable();
+                    dataTable.addColumn('string', 'Місто');
+                    dataTable.addColumn('number', 'Кількість');
+
+                    data.forEach(item => {
+                        dataTable.addRow([item.city, item.count]);
+                    });
+
+                    const options = {
+                        width: '100%',
+                        height: 380,
+                        legend: { position: 'none' },
+                        chartArea: { width: '75%', height: '70%' }
+                    };
+
+                    const chart = new google.visualization.ColumnChart(
+                        document.getElementById('countByCityChart')
+                    );
+                    chart.draw(dataTable, options);
+                })
+                .catch(error => console.error('Помилка завантаження діаграми по містах:', error));
+        }
+
+        function drawCountByHousingTypeChart() {
+            fetch('/api/charts/countByHousingType')
+                .then(response => response.json())
+                .then(data => {
+                    const dataTable = new google.visualization.DataTable();
+                    dataTable.addColumn('string', 'Тип житла');
+                    dataTable.addColumn('number', 'Кількість');
+
+                    data.forEach(item => {
+                        dataTable.addRow([item.housingType, item.count]);
+                    });
+
+                    const options = {
+                        width: '100%',
+                        height: 380,
+                        pieHole: 0.35,
+                        chartArea: { width: '85%', height: '75%' }
+                    };
+
+                    const chart = new google.visualization.PieChart(
+                        document.getElementById('countByHousingTypeChart')
+                    );
+                    chart.draw(dataTable, options);
+                })
+                .catch(error => console.error('Помилка завантаження діаграми за типом житла:', error));
+        }
+
+        window.addEventListener('resize', drawCharts);
+    </script>
+
+    @if (isOwner)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const deleteApartmentModal = document.getElementById('deleteApartmentModal');
+                if (!deleteApartmentModal) return;
+
+                deleteApartmentModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const apartmentId = button.getAttribute('data-apartment-id');
+                    const apartmentTitle = button.getAttribute('data-apartment-title');
+
+                    const form = document.getElementById('deleteApartmentForm');
+                    const title = document.getElementById('deleteApartmentTitle');
+
+                    form.action = '/Apartments/Delete/' + apartmentId;
+                    title.textContent = apartmentTitle;
+                });
+            });
+        </script>
+    }
+}

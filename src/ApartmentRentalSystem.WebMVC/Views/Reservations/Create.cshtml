@@ -4,74 +4,103 @@
     ViewData["Title"] = "Створити бронювання";
 }
 
-<h1>Створення бронювання</h1>
-
-<h4>Бронювання</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="ApartmentId" class="control-label">Апартаменти</label>
-                <select asp-for="ApartmentId" class="form-control" asp-items="ViewBag.ApartmentId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="GuestId" class="control-label">Клієнт (Гість)</label>
-                <select asp-for="GuestId" class="form-control" asp-items="ViewBag.GuestId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="StatusId" class="control-label">Статус</label>
-                <select asp-for="StatusId" class="form-control" asp-items="ViewBag.StatusId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="UnitId" class="control-label">Одиниця часу</label>
-                <select asp-for="UnitId" class="form-control" asp-items="ViewBag.UnitId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="UnitsCount" class="control-label">Кількість (одиниць)</label>
-                <input asp-for="UnitsCount" class="form-control" />
-                <span asp-validation-for="UnitsCount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StartAt" class="control-label">Дата початку</label>
-                <input asp-for="StartAt" class="form-control" />
-                <span asp-validation-for="StartAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndAt" class="control-label">Дата кінця</label>
-                <input asp-for="EndAt" class="form-control" />
-                <span asp-validation-for="EndAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PriceTypeIdSnapshot" class="control-label">Тип ціни</label>
-                <input asp-for="PriceTypeIdSnapshot" class="form-control" />
-                <span asp-validation-for="PriceTypeIdSnapshot" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UnitAmountSnapshot" class="control-label">Ціна за одиницю</label>
-                <input asp-for="UnitAmountSnapshot" class="form-control" />
-                <span asp-validation-for="UnitAmountSnapshot" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CurrencySnapshot" class="control-label">Валюта</label>
-                <input asp-for="CurrencySnapshot" class="form-control" />
-                <span asp-validation-for="CurrencySnapshot" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TotalPrice" class="control-label">Загальна вартість</label>
-                <input asp-for="TotalPrice" class="form-control" />
-                <span asp-validation-for="TotalPrice" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Створити" class="btn btn-primary" />
-            </div>
-        </form>
+<section class="page-header mb-4">
+    <div>
+        <h1 class="page-title mb-1">Створити бронювання</h1>
+        <p class="page-subtitle mb-0">
+            Вкажіть параметри бронювання та підтвердьте свою поїздку.
+        </p>
     </div>
-</div>
+</section>
 
-<div>
-    <a asp-action="Index">Назад до списку</a>
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-primary py-5 d-flex align-items-center justify-content-center reservation-hero-header">
+                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm reservation-hero-icon">
+                    <i class="fa-solid fa-calendar-plus fa-2x text-primary"></i>
+                </div>
+            </div>
+
+            <div class="card-body p-5 bg-white">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-4 fw-bold"></div>
+
+                <form asp-action="Create" method="post">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="form-floating">
+                                <select asp-for="ApartmentId"
+                                        class="form-select border-light shadow-sm form-soft-bg"
+                                        asp-items="ViewBag.ApartmentId">
+                                    <option value="">-- Оберіть житло --</option>
+                                </select>
+                                <label class="text-muted">Житло</label>
+                                <span asp-validation-for="ApartmentId" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <select asp-for="UnitId"
+                                        class="form-select border-light shadow-sm form-soft-bg"
+                                        asp-items="ViewBag.UnitId">
+                                    <option value="">-- Оберіть період --</option>
+                                </select>
+                                <label class="text-muted">Одиниця часу</label>
+                                <span asp-validation-for="UnitId" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="UnitsCount"
+                                       type="number"
+                                       min="1"
+                                       class="form-control border-light shadow-sm form-soft-bg"
+                                       placeholder="Кількість" />
+                                <label class="text-muted">Кількість</label>
+                                <span asp-validation-for="UnitsCount" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="StartAt"
+                                       type="date"
+                                       class="form-control border-light shadow-sm form-soft-bg" />
+                                <label class="text-muted">Дата заїзду</label>
+                                <span asp-validation-for="StartAt" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="EndAt"
+                                       type="date"
+                                       class="form-control border-light shadow-sm form-soft-bg" />
+                                <label class="text-muted">Дата виїзду</label>
+                                <span asp-validation-for="EndAt" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reservation-note-box mt-3 mb-4">
+                        Після створення бронювання система автоматично визначить статус, ціну за одиницю та загальну вартість.
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm">
+                            <i class="fa-solid fa-check me-2"></i>ПІДТВЕРДИТИ БРОНЮВАННЯ
+                        </button>
+
+                        <a asp-action="Index" class="btn btn-outline-primary rounded-pill py-3 fw-bold">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Назад до списку
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

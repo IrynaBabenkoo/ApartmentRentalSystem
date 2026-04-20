@@ -1,49 +1,98 @@
 ﻿@model ApartmentRentalSystem.Domain.Entities.User
 
 @{
-    ViewData["Title"] = "Створення користувача";
+    ViewData["Title"] = "Створити користувача";
 }
 
-<div class="container mt-4">
-    <div class="card shadow border-0 rounded-4">
-        <div class="card-header bg-primary text-white py-3">
-            <h4 class="mb-0">Створити нового користувача</h4>
+<section class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            <h1 class="page-title mb-1">Створити користувача</h1>
+            <p class="page-subtitle mb-0">
+                Додайте нового користувача та вкажіть його основні дані.
+            </p>
         </div>
-        <div class="card-body p-4">
-            <form asp-action="Create">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                <div class="form-group mb-3">
-                    <label class="control-label fw-bold">Повне ім'я (ПІБ)</label>
-                    <input asp-for="FullName" class="form-control" />
-                    <span asp-validation-for="FullName" class="text-danger"></span>
-                </div>
+        <div class="details-top-actions">
+            <a asp-action="Index" class="btn btn-outline-primary px-4 fw-bold">
+                <i class="fa-solid fa-arrow-left me-2"></i>Назад
+            </a>
+        </div>
+    </div>
+</section>
 
-                <div class="form-group mb-3">
-                    <label class="control-label fw-bold">Електронна пошта</label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-primary py-5 d-flex align-items-center justify-content-center profile-edit-hero-header">
+                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm profile-edit-hero-icon">
+                    <i class="fa-solid fa-user-plus fa-2x text-primary"></i>
                 </div>
+            </div>
 
-                <div class="form-group mb-3">
-                    <label class="control-label fw-bold">Номер телефону</label>
-                    <input asp-for="Phone" class="form-control" />
-                    <span asp-validation-for="Phone" class="text-danger"></span>
-                </div>
+            <div class="card-body p-5 bg-white">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-4 fw-bold"></div>
 
-                <div class="form-group mb-4">
-                    <label class="control-label fw-bold">Роль у системі</label>
-                    <select asp-for="RoleId" class="form-select border-primary" asp-items="ViewBag.RoleId">
-                        <option value="">-- Оберіть роль --</option>
-                    </select>
-                    <span asp-validation-for="RoleId" class="text-danger"></span>
-                </div>
+                <form asp-action="Create" method="post">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="FullName"
+                                       class="form-control border-light shadow-sm form-soft-bg"
+                                       placeholder="Повне ім’я" />
+                                <label class="text-muted">Повне ім’я</label>
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                        </div>
 
-                <div class="form-group d-flex gap-2">
-                    <input type="submit" value="Створити" class="btn btn-primary px-4 shadow-sm" />
-                    <a asp-action="Index" class="btn btn-outline-secondary px-4 shadow-sm">Назад до списку</a>
-                </div>
-            </form>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="Email"
+                                       class="form-control border-light shadow-sm form-soft-bg"
+                                       placeholder="Email" />
+                                <label class="text-muted">Електронна пошта</label>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="Phone"
+                                       class="form-control border-light shadow-sm form-soft-bg"
+                                       placeholder="Телефон" />
+                                <label class="text-muted">Номер телефону</label>
+                                <span asp-validation-for="Phone" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <div class="form-floating">
+                                <select asp-for="RoleId"
+                                        class="form-select border-light shadow-sm form-soft-bg"
+                                        asp-items="ViewBag.RoleId">
+                                    <option value="">-- Оберіть роль --</option>
+                                </select>
+                                <label class="text-muted">Роль у системі</label>
+                                <span asp-validation-for="RoleId" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-note-box mt-3 mb-4">
+                        Перевірте дані користувача перед створенням нового запису.
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>СТВОРИТИ КОРИСТУВАЧА
+                        </button>
+
+                        <a asp-action="Index" class="btn btn-outline-primary rounded-pill py-3 fw-bold">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Повернутися
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

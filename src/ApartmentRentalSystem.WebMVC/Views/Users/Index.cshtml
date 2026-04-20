@@ -4,37 +4,116 @@
     ViewData["Title"] = "Користувачі";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary">Керування користувачами</h2>
-        <a asp-action="Create" class="btn btn-primary">Додати нового користувача</a>
-    </div>
+<section class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="page-title mb-1">Користувачі</h1>
+            <p class="page-subtitle mb-0">
+                Переглядайте зареєстрованих користувачів та керуйте їхніми даними.
+            </p>
+        </div>
 
-    <table class="table table-bordered table-striped">
-        <thead class="table-light">
-            <tr>
-                <th>ПІБ</th>
-                <th>Email</th>
-                <th>Телефон</th>
-                <th>Роль</th>
-                <th class="text-center">Дії</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@Html.DisplayFor(modelItem => item.FullName)</td>
-                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                    <td>@Html.DisplayFor(modelItem => item.Phone)</td>
-                    <td>@Html.DisplayFor(modelItem => item.Role.Name)</td>
-                    <td class="text-center">
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">Змінити</a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Деталі</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Видалити</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+        <a asp-action="Create" class="btn btn-primary px-4 py-2 fw-bold">
+            <i class="fa-solid fa-plus me-2"></i>Додати користувача
+        </a>
+    </div>
+</section>
+
+<section class="home-section-card mb-5">
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table align-middle users-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Користувач</th>
+                        <th>Email</th>
+                        <th>Телефон</th>
+                        <th>Роль</th>
+                        <th class="text-end">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var roleName = item.Role?.Name ?? "Користувач";
+                        var roleLabel = roleName;
+                        var roleBadgeClass = "profile-role-badge";
+
+                        if (roleName == "Host")
+                        {
+                            roleLabel = "Власник";
+                        }
+                        else if (roleName == "Guest")
+                        {
+                            roleLabel = "Орендар";
+                        }
+
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="users-avatar">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">@item.FullName</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="fw-semibold">@item.Email</span>
+                            </td>
+
+                            <td>
+                                <span class="text-muted">
+                                    @(string.IsNullOrWhiteSpace(item.Phone) ? "Не вказано" : item.Phone)
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="@roleBadgeClass">@roleLabel</span>
+                            </td>
+
+                            <td class="text-end">
+                                <div class="btn-group shadow-sm">
+                                    <a asp-action="Details" asp-route-id="@item.Id"
+                                       class="btn btn-outline-primary btn-sm px-3" title="Деталі">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+
+                                    <a asp-action="Edit" asp-route-id="@item.Id"
+                                       class="btn btn-outline-secondary btn-sm px-3" title="Редагувати">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+
+                                    <a asp-action="Delete" asp-route-id="@item.Id"
+                                       class="btn btn-outline-primary btn-sm px-3" title="Видалити">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div class="empty-icon mx-auto mb-3">
+                <i class="fa-solid fa-users"></i>
+            </div>
+
+            <h5 class="fw-bold text-dark">Користувачів поки що немає</h5>
+            <p class="text-muted mb-4">
+                Після додавання або реєстрації користувачі з’являться тут.
+            </p>
+
+            <a asp-action="Create" class="btn btn-primary px-4 fw-bold">
+                <i class="fa-solid fa-plus me-2"></i>Додати користувача
+            </a>
+        </div>
+    }
+</section>

@@ -1,0 +1,170 @@
+﻿@page
+@using ApartmentRentalSystem.WebMVC.Data.Identity
+@using ApartmentRentalSystem.Infrastructure
+@using ApartmentRentalSystem.Domain.Entities
+@using ApartmentRentalSystem.Domain.Enums
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.DependencyInjection
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@model CustomRegisterModel
+@{
+    ViewData["Title"] = "Реєстрація";
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+
+                <div class="card-header bg-primary py-5 d-flex align-items-center justify-content-center" style="height: 180px; border-bottom: none;">
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 80px; height: 80px;">
+                        <i class="fa-solid fa-user-plus fa-2x text-primary"></i>
+                    </div>
+                </div>
+
+                <div class="card-body p-5 bg-white">
+                    <form id="registerForm" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.FullName" class="form-control border-light shadow-sm" style="background-color: #f8f9ff;" placeholder="Повне ім'я" required />
+                            <label class="text-muted">Повне ім’я</label>
+                            <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control border-light shadow-sm" style="background-color: #f8f9ff;" placeholder="Email" required />
+                            <label class="text-muted">Електронна пошта</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Password" type="password" class="form-control border-light shadow-sm" style="background-color: #f8f9ff;" placeholder="Пароль" required />
+                            <label class="text-muted">Пароль</label>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.ConfirmPassword" type="password" class="form-control border-light shadow-sm" style="background-color: #f8f9ff;" placeholder="Підтвердження" required />
+                            <label class="text-muted">Підтвердження</label>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-4 my-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="Input.Role" value="Tenant" id="rT" checked>
+                                <label class="form-check-label fw-bold text-primary" for="rT">ОРЕНДАР</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="Input.Role" value="Owner" id="rO">
+                                <label class="form-check-label fw-bold text-primary" for="rO">ВЛАСНИК</label>
+                            </div>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary shadow-sm fw-bold rounded-pill py-3 fs-6">
+                            ЗАРЕЄСТРУВАТИСЯ
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-footer text-center py-4 bg-white border-0">
+                    <div class="small text-muted">
+                        Вже маєте акаунт? <a class="text-primary text-decoration-none fw-bold" asp-page="./Login">Увійти!</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public class CustomRegisterModel : Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    {
+        [BindProperty]
+        public InputModel Input { get; set; } = new InputModel();
+
+        public class InputModel
+        {
+            [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Поле ПІБ обов'язкове")]
+            public string FullName { get; set; } = string.Empty;
+
+            [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Поле Email обов'язкове")]
+            [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Некоректний формат Email")]
+            public string Email { get; set; } = string.Empty;
+
+            [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Пароль обов'язковий")]
+            [System.ComponentModel.DataAnnotations.DataType(System.ComponentModel.DataAnnotations.DataType.Password)]
+            public string Password { get; set; } = string.Empty;
+
+            [System.ComponentModel.DataAnnotations.DataType(System.ComponentModel.DataAnnotations.DataType.Password)]
+            [System.ComponentModel.DataAnnotations.Compare("Password", ErrorMessage = "Паролі не співпадають.")]
+            public string ConfirmPassword { get; set; } = string.Empty;
+
+            [System.ComponentModel.DataAnnotations.Required]
+            public string Role { get; set; } = "Tenant";
+        }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid)
+                return Page();
+
+            var userManager = HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+            var signInManager = HttpContext.RequestServices.GetRequiredService<SignInManager<ApplicationUser>>();
+            var db = HttpContext.RequestServices.GetRequiredService<ApartmentContext>();
+
+            var user = new ApplicationUser
+            {
+                UserName = Input.Email,
+                Email = Input.Email
+            };
+
+            var result = await userManager.CreateAsync(user, Input.Password);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                return Page();
+            }
+
+            var identityRoleName = Input.Role == "Owner" ? "Owner" : "Tenant";
+            await userManager.AddToRoleAsync(user, identityRoleName);
+
+            var existingDomainUser = await db.Users.FirstOrDefaultAsync(u => u.Email == Input.Email);
+
+            if (existingDomainUser == null)
+            {
+                var targetRoleType = Input.Role == "Owner" ? RoleType.Host : RoleType.Guest;
+
+                var domainRole = await db.UserRoles.FirstOrDefaultAsync(r => r.Type == targetRoleType);
+
+                if (domainRole == null)
+                {
+                    ModelState.AddModelError(string.Empty, "У таблиці UserRoles відсутня потрібна роль. Перевірте seed-дані ролей.");
+                    await userManager.DeleteAsync(user);
+                    return Page();
+                }
+
+                var domainUser = new User
+                {
+                    FullName = Input.FullName,
+                    Email = Input.Email,
+                    Phone = string.Empty,
+                    RoleId = domainRole.Id
+                };
+
+                db.Users.Add(domainUser);
+                await db.SaveChangesAsync();
+            }
+
+            await signInManager.SignInAsync(user, isPersistent: false);
+            return LocalRedirect("~/");
+        }
+    }
+}

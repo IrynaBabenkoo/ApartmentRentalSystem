@@ -31,7 +31,6 @@ public class Reservation : Entity, IAggregateRoot
     [DataType(DataType.Date)]
     public DateTime EndAt { get; set; }
 
-    // Снапшоти (дані на момент бронювання)
     [Display(Name = "Тип ціни (архів)")]
     public int? PriceTypeIdSnapshot { get; set; }
 

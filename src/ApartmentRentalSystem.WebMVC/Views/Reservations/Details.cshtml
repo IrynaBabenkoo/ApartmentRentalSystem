@@ -2,83 +2,180 @@
 
 @{
     ViewData["Title"] = "Деталі бронювання";
+
+    var isOwner = User.Identity?.IsAuthenticated == true && User.IsInRole("Owner");
+    var statusName = Model.Status?.Name ?? "Невідомо";
+    var badgeClass = "reservation-status reservation-status-neutral";
+
+    if (statusName == "Очікує підтвердження")
+    {
+        badgeClass = "reservation-status reservation-status-pending";
+    }
+    else if (statusName == "Підтверджено")
+    {
+        badgeClass = "reservation-status reservation-status-approved";
+    }
+    else if (statusName == "Скасовано")
+    {
+        badgeClass = "reservation-status reservation-status-cancelled";
+    }
 }
 
-<h1>Деталі</h1>
+<section class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                <h1 class="page-title mb-0">
+                    @(isOwner ? "Деталі бронювання" : "Деталі моєї поїздки")
+                </h1>
 
-<div>
-    <h4>Бронювання</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.UnitsCount)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.UnitsCount)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.StartAt)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.StartAt)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.EndAt)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.EndAt)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PriceTypeIdSnapshot)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PriceTypeIdSnapshot)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.UnitAmountSnapshot)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.UnitAmountSnapshot)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.CurrencySnapshot)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.CurrencySnapshot)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.TotalPrice)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TotalPrice)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Apartment)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Apartment.Address)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Guest)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Guest.Email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Status.Name)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.TimeUnit)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TimeUnit.Name)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Редагувати</a> |
-    <a asp-action="Index" class="btn btn-secondary">Назад до списку</a>
+                <span class="@badgeClass reservation-status-badge">
+                    @statusName
+                </span>
+            </div>
+
+            <p class="page-subtitle mb-0">
+                <i class="fa-solid fa-house me-1 text-primary"></i>
+                @(Model.Apartment?.Title ?? "Житло не вказано")
+            </p>
+        </div>
+
+        <div class="details-top-actions">
+            <a asp-action="Index" class="btn btn-outline-primary px-4 fw-bold">
+                <i class="fa-solid fa-arrow-left me-2"></i>Назад
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-8">
+        <section class="home-section-card h-100">
+            <h3 class="details-section-title mb-3">
+                @(isOwner ? "Інформація про бронювання" : "Інформація про поїздку")
+            </h3>
+
+            <div class="details-info-grid mb-4">
+                <div class="details-info-item">
+                    <span class="details-info-label">Житло</span>
+                    <span class="details-info-value">@(Model.Apartment?.Title ?? "Не вказано")</span>
+                </div>
+
+                <div class="details-info-item">
+                    <span class="details-info-label">Адреса</span>
+                    <span class="details-info-value">@(Model.Apartment?.Address ?? "Не вказано")</span>
+                </div>
+
+                <div class="details-info-item">
+                    <span class="details-info-label">Дата заїзду</span>
+                    <span class="details-info-value">@Model.StartAt.ToString("dd.MM.yyyy")</span>
+                </div>
+
+                <div class="details-info-item">
+                    <span class="details-info-label">Дата виїзду</span>
+                    <span class="details-info-value">@Model.EndAt.ToString("dd.MM.yyyy")</span>
+                </div>
+
+                <div class="details-info-item">
+                    <span class="details-info-label">Кількість</span>
+                    <span class="details-info-value">@Model.UnitsCount @(Model.TimeUnit?.Name ?? "од.")</span>
+                </div>
+
+                <div class="details-info-item">
+                    <span class="details-info-label">Ціна за одиницю</span>
+                    <span class="details-info-value">
+                        @(Model.UnitAmountSnapshot?.ToString("0.##") ?? "—")
+                        @Model.CurrencySnapshot
+                    </span>
+                </div>
+
+                <div class="details-info-item">
+                    <span class="details-info-label">Загальна вартість</span>
+                    <span class="details-info-value">
+                        @(Model.TotalPrice?.ToString("0.##") ?? "—")
+                        @Model.CurrencySnapshot
+                    </span>
+                </div>
+
+                <div class="details-info-item">
+                    <span class="details-info-label">Статус</span>
+                    <span class="details-info-value">@statusName</span>
+                </div>
+            </div>
+
+            @if (isOwner)
+            {
+                <h4 class="details-subtitle mb-2">Гість</h4>
+                <p class="details-description mb-0">
+                    @(Model.Guest?.Email ?? $"ID: {Model.GuestId}")
+                </p>
+            }
+        </section>
+    </div>
+
+    <div class="col-lg-4">
+        <section class="home-section-card details-side-card mb-4">
+            <h3 class="details-section-title mb-3">Підсумок</h3>
+
+            <div class="details-price-value mb-1">
+                @(Model.TotalPrice?.ToString("0.##") ?? "—") @Model.CurrencySnapshot
+            </div>
+
+            <div class="text-muted mb-4">
+                за @Model.UnitsCount @(Model.TimeUnit?.Name?.ToLower() ?? "од.")
+            </div>
+
+            @if (isOwner)
+            {
+                <div class="d-grid gap-2">
+                    @if (statusName == "Очікує підтвердження")
+                    {
+                        <form asp-action="Confirm" asp-route-id="@Model.Id" method="post" class="d-grid gap-2">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-primary rounded-pill fw-bold">
+                                <i class="fa-solid fa-check me-2"></i>Підтвердити бронювання
+                            </button>
+                        </form>
+
+                        <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="d-grid gap-2">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-primary rounded-pill fw-bold">
+                                <i class="fa-solid fa-xmark me-2"></i>Відхилити бронювання
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="profile-note-box">
+                            Для цього бронювання дія вже виконана.
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="d-grid gap-2">
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-primary rounded-pill fw-bold">
+                        <i class="fa-solid fa-xmark me-2"></i>Скасувати бронювання
+                    </a>
+                </div>
+            }
+        </section>
+
+        <section class="home-section-card details-side-card">
+            <h3 class="details-section-title mb-3">Житло</h3>
+
+            <p class="text-muted mb-3">
+                <i class="fa-solid fa-location-dot text-primary me-2"></i>
+                @(Model.Apartment?.Address ?? "Адреса не вказана")
+            </p>
+
+            @if (Model.Apartment != null)
+            {
+                <a asp-controller="Apartments" asp-action="Details" asp-route-id="@Model.ApartmentId" class="btn btn-outline-primary rounded-pill fw-bold w-100">
+                    <i class="fa-solid fa-arrow-right me-2"></i>Перейти до оголошення
+                </a>
+            }
+        </section>
+    </div>
 </div>

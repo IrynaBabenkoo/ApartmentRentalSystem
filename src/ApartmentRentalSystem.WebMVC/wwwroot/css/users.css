@@ -1,0 +1,19 @@
+﻿/* Users list */
+
+.users-table td,
+.users-table th {
+    vertical-align: middle;
+}
+
+.users-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(89, 49, 150, 0.10);
+    color: var(--brand-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}

@@ -1,8 +1,279 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<ApartmentRentalSystem.Domain.Entities.Apartment>
+
+@{
+    ViewData["Title"] = "Головна";
+    var isOwner = User.Identity?.IsAuthenticated == true && User.IsInRole("Owner");
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (isOwner)
+{
+    <section class="hero-gradient owner-hero-clean text-white mb-4 shadow-sm">
+        <div class="owner-hero-content">
+            <span class="hero-badge">Кабінет власника</span>
+
+            <h1 class="hero-title owner-hero-title mt-3 mb-3">
+                Керуйте своїми об'єктами
+            </h1>
+
+            <p class="hero-subtitle owner-hero-subtitle mb-4">
+                Додавайте житло, редагуйте оголошення та контролюйте бронювання в одному місці.
+            </p>
+
+            <div class="d-flex flex-wrap gap-3">
+                <a asp-controller="Apartments" asp-action="Create" class="btn btn-light text-primary px-4 py-2 fw-bold shadow-sm">
+                    <i class="fa-solid fa-plus me-2"></i>Додати житло
+                </a>
+
+                <a asp-controller="Reservations" asp-action="Index" class="btn btn-outline-light px-4 py-2 fw-bold">
+                    <i class="fa-solid fa-calendar-check me-2"></i>Бронювання
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="owner-stats-section mb-5">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="owner-stat-card-light">
+                    <div class="owner-stat-label-dark">Мої об'єкти</div>
+                    <div class="owner-stat-value-dark">@(ViewBag.TotalApartments ?? 0)</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="owner-stat-card-light">
+                    <div class="owner-stat-label-dark">Активні бронювання</div>
+                    <div class="owner-stat-value-dark">@(ViewBag.ActiveReservations ?? 0)</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="owner-stat-card-light">
+                    <div class="owner-stat-label-dark">Нові заявки</div>
+                    <div class="owner-stat-value-dark">@(ViewBag.PendingReservations ?? 0)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-section-card mb-5">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div>
+                <h3 class="fw-bold mb-1 text-dark">Мої останні оголошення</h3>
+                <p class="text-muted mb-0">Останні додані або доступні об'єкти для керування</p>
+            </div>
+
+            <a asp-controller="Apartments" asp-action="Index" class="btn btn-outline-primary px-4 fw-bold">
+                Мої об'єкти
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden hover-card home-card">
+                            <div class="position-relative">
+                                <img src="@(string.IsNullOrEmpty(item.ImagePath) ? "/images/default-apartment.jpg" : item.ImagePath)"
+                                     class="card-img-top home-card-img"
+                                     alt="@item.Title" />
+
+                                @if (!item.IsActive)
+                                {
+                                    <span class="position-absolute top-0 start-0 m-3 badge rounded-pill bg-danger shadow-sm">
+                                        Неактивне
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="mb-2">
+                                    <span class="text-uppercase small fw-bold text-primary">
+                                        @(item.HousingType?.Name ?? "Житло")
+                                    </span>
+                                </div>
+
+                                <h5 class="card-title fw-bold text-dark mb-2">@item.Title</h5>
+
+                                <p class="text-muted small mb-3">
+                                    <i class="fa-solid fa-location-dot me-1 text-primary"></i>
+                                    @item.City, @item.Address
+                                </p>
+
+                                <div class="d-flex flex-wrap gap-2 mb-4">
+                                    <span class="badge bg-light text-dark rounded-pill border px-3 fw-normal">
+                                        <i class="fa-solid fa-users me-1 text-primary"></i>
+                                        До @item.MaxGuests гостей
+                                    </span>
+                                </div>
+
+                                <div class="mt-auto border-top pt-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        @if (item.Pricings != null && item.Pricings.Any())
+                                        {
+                                            var price = item.Pricings.OrderByDescending(p => p.ValidFrom).First();
+                                            <span class="h5 fw-bold text-primary mb-0">@price.Amount @price.Currency</span>
+                                            <small class="text-muted">/ @(price.PriceType?.TimeUnit?.Name?.ToLower() ?? "доба")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="h5 fw-bold text-muted mb-0">Ціна не вказана</span>
+                                        }
+                                    </div>
+
+                                    <div class="btn-group shadow-sm">
+                                        <a asp-controller="Apartments" asp-action="Edit" asp-route-id="@item.Id"
+                                           class="btn btn-outline-secondary btn-sm px-3" title="Редагувати">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+
+                                        <a asp-controller="Apartments" asp-action="Details" asp-route-id="@item.Id"
+                                           class="btn btn-outline-primary btn-sm px-3" title="Деталі">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <div class="empty-icon mx-auto mb-3">
+                            <i class="fa-solid fa-house-circle-exclamation"></i>
+                        </div>
+
+                        <h5 class="fw-bold text-dark">У вас ще немає оголошень</h5>
+                        <p class="text-muted mb-4">Почніть із додавання першого житла до системи.</p>
+
+                        <a asp-controller="Apartments" asp-action="Create" class="btn btn-primary px-4 fw-bold">
+                            <i class="fa-solid fa-plus me-2"></i>Додати житло
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}
+else
+{
+    <section class="hero-gradient guest-hero text-white text-center py-5 mb-5 shadow-sm">
+        <div class="py-5">
+            <h1 class="hero-title mb-3">Знайдіть ідеальне житло для оренди</h1>
+            <p class="hero-subtitle mb-4">Тисячі затишних варіантів чекають саме на вас</p>
+
+            <div class="row justify-content-center mt-4">
+                <div class="col-lg-9">
+                    <form asp-controller="Apartments" asp-action="Index" method="get" class="home-search-shell">
+                        <div class="home-search-field border-end">
+                            <input type="text" name="searchCity" class="form-control home-search-input" placeholder="Куди ви хочете поїхати? (Місто)">
+                        </div>
+
+                        <div class="home-search-field border-end d-none d-md-block">
+                            <input type="number" name="maxPrice" class="form-control home-search-input" placeholder="Макс. ціна">
+                        </div>
+
+                        <div class="home-search-button-wrap">
+                            <button type="submit" class="btn btn-primary px-4 py-2 fw-bold">
+                                <i class="fa-solid fa-magnifying-glass me-2"></i>Пошук
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="alert alert-light shadow-sm border-0 p-4 rounded-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h4 class="alert-heading fw-bold text-primary mb-1">
+                                <i class="fa-solid fa-hand me-2"></i>Вітаємо, Орендарю!
+                            </h4>
+                            <p class="mb-0 text-muted">Приємно бачити вас знову!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <section class="home-section-card mb-5">
+        <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
+            <div>
+                <h3 class="fw-bold mb-0 text-dark">Популярні варіанти</h3>
+                <p class="text-muted mb-0">Найкращі пропозиції</p>
+            </div>
+
+            <a asp-controller="Apartments" asp-action="Index" class="text-primary fw-bold text-decoration-none">
+                Дивитися всі <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden hover-card home-card">
+                            <img src="@(string.IsNullOrEmpty(item.ImagePath) ? "/images/default-apartment.jpg" : item.ImagePath)"
+                                 class="card-img-top home-card-img"
+                                 alt="@item.Title" />
+
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="mb-2">
+                                    <span class="text-uppercase small fw-bold text-primary">
+                                        @(item.HousingType?.Name ?? "Житло")
+                                    </span>
+                                </div>
+
+                                <h5 class="card-title fw-bold text-dark mb-3">@item.Title</h5>
+
+                                <p class="text-muted small">
+                                    <i class="fa-solid fa-location-dot me-1 text-primary"></i>
+                                    @item.City, @item.Address
+                                </p>
+
+                                <div class="mt-auto border-top pt-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        @if (item.Pricings != null && item.Pricings.Any())
+                                        {
+                                            var price = item.Pricings.OrderByDescending(p => p.ValidFrom).First();
+                                            <span class="h5 mb-0 fw-bold text-primary">@price.Amount @price.Currency</span>
+                                            <small class="text-muted">/ @(price.PriceType?.TimeUnit?.Name?.ToLower() ?? "доба")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="h5 mb-0 fw-bold text-muted">Ціна не вказана</span>
+                                        }
+                                    </div>
+
+                                    <a asp-controller="Apartments" asp-action="Details" asp-route-id="@item.Id"
+                                       class="btn btn-outline-primary px-3 fw-bold">
+                                        Деталі
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted h5">Поки що немає доступних варіантів.</p>
+                </div>
+            }
+        </div>
+    </section>
+}

@@ -23,9 +23,15 @@ public class ApartmentContext : DbContext
     public DbSet<TimeUnit> TimeUnits { get; set; }
     public DbSet<ReservationHistory> ReservationHistories { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
+
+    public DbSet<Amenity> Amenities { get; set; }
+    public DbSet<ApartmentAmenity> ApartmentAmenities { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUser>().ToTable("AspNetUsers");
 
         modelBuilder.Entity<PriceType>(e =>
         {
@@ -87,6 +93,39 @@ public class ApartmentContext : DbContext
             .WithMany()
             .HasForeignKey(u => u.RoleId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ApartmentAmenity>(e =>
+        {
+            e.HasKey(x => new { x.ApartmentId, x.AmenityId });
+
+            e.HasOne(x => x.Apartment)
+                .WithMany(a => a.ApartmentAmenities)
+                .HasForeignKey(x => x.ApartmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(x => x.Amenity)
+                .WithMany(a => a.ApartmentAmenities)
+                .HasForeignKey(x => x.AmenityId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Amenity>(e =>
+        {
+            e.Property(x => x.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            e.HasData(
+                new Amenity { Id = 1, Name = "Wi-Fi" },
+                new Amenity { Id = 2, Name = "Парковка" },
+                new Amenity { Id = 3, Name = "Кухня" },
+                new Amenity { Id = 4, Name = "Кондиціонер" },
+                new Amenity { Id = 5, Name = "Пральна машина" },
+                new Amenity { Id = 6, Name = "Балкон" },
+                new Amenity { Id = 7, Name = "Телевізор" },
+                new Amenity { Id = 8, Name = "Дозволено з тваринами" }
+            );
+        });
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApartmentContext).Assembly);
     }

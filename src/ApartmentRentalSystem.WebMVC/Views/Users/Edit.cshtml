@@ -1,48 +1,90 @@
 ﻿@model ApartmentRentalSystem.Domain.Entities.User
 
 @{
-    ViewData["Title"] = "Редагування";
+    ViewData["Title"] = "Редагувати профіль";
 }
 
-<h2>Редагувати користувача</h2>
-<hr />
+<section class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            <h1 class="page-title mb-1">Редагувати профіль</h1>
+            <p class="page-subtitle mb-0">
+                Оновіть основну інформацію про свій акаунт.
+            </p>
+        </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="details-top-actions">
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-primary px-4 fw-bold">
+                <i class="fa-solid fa-arrow-left me-2"></i>Назад
+            </a>
+        </div>
+    </div>
+</section>
 
-            <div class="form-group mb-2">
-                <label class="control-label">Повне ім'я (ПІБ)</label>
-                <input asp-for="FullName" class="form-control" />
-                <span asp-validation-for="FullName" class="text-danger"></span>
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-primary py-5 d-flex align-items-center justify-content-center profile-edit-hero-header">
+                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm profile-edit-hero-icon">
+                    <i class="fa-solid fa-user-pen fa-2x text-primary"></i>
+                </div>
             </div>
 
-            <div class="form-group mb-2">
-                <label class="control-label">Електронна пошта</label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
+            <div class="card-body p-5 bg-white">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-4 fw-bold"></div>
 
-            <div class="form-group mb-2">
-                <label class="control-label">Номер телефону</label>
-                <input asp-for="Phone" class="form-control" />
-                <span asp-validation-for="Phone" class="text-danger"></span>
-            </div>
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="RoleId" />
 
-            <div class="form-group mb-3">
-                <label class="control-label">Роль</label>
-                <select asp-for="RoleId" class="form-control" asp-items="ViewBag.RoleId"></select>
-                <span asp-validation-for="RoleId" class="text-danger"></span>
-            </div>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="FullName"
+                                       class="form-control border-light shadow-sm form-soft-bg"
+                                       placeholder="Повне ім’я" />
+                                <label class="text-muted">Повне ім’я</label>
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                        </div>
 
-            <input type="hidden" asp-for="Id" />
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="Email"
+                                       class="form-control border-light shadow-sm form-soft-bg"
+                                       placeholder="Email" />
+                                <label class="text-muted">Електронна пошта</label>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                        </div>
 
-            <div class="form-group">
-                <input type="submit" value="Зберегти" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-link">Назад до списку</a>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input asp-for="Phone"
+                                       class="form-control border-light shadow-sm form-soft-bg"
+                                       placeholder="Телефон" />
+                                <label class="text-muted">Номер телефону</label>
+                                <span asp-validation-for="Phone" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-note-box mt-3 mb-4">
+                        Перевірте введені дані перед збереженням змін.
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>ЗБЕРЕГТИ ЗМІНИ
+                        </button>
+
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-primary rounded-pill py-3 fw-bold">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Повернутися
+                        </a>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 

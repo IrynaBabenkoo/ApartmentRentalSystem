@@ -3,13 +3,19 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Оренда Житла</title>
+    <title>@ViewData["Title"] - Оренда житла</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/apartments.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/reservations.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/users.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/pulse/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/pulse/bootstrap.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ApartmentRentalSystem.WebMVC.styles.css" asp-append-version="true" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="d-flex flex-column min-vh-100">
     <header>
@@ -18,40 +24,43 @@
                 <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="fa-solid fa-building-user me-2"></i>Оренда житла
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar"
+                        aria-expanded="false"
+                        aria-label="Перемкнути навігацію">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+
+                <div id="mainNavbar" class="navbar-collapse collapse d-lg-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Users" asp-action="Index">Користувачі</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Apartments" asp-action="Index">Апартаменти</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Reservations" asp-action="Index">Бронювання</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Payments" asp-action="Index">Платежі</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa-solid fa-gear me-1"></i> Налаштування
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" asp-controller="HousingTypes" asp-action="Index">Типи житла</a></li>
-                                <li><a class="dropdown-item" asp-controller="UserRoles" asp-action="Index">Ролі</a></li>
-                                <li><a class="dropdown-item" asp-controller="TimeUnits" asp-action="Index">Одиниці часу</a></li>
-                                <li><a class="dropdown-item" asp-controller="PriceTypes" asp-action="Index">Типи цін</a></li>
-                                <li><a class="dropdown-item" asp-controller="ApartmentPricings" asp-action="Index">Ціни об’єктів</a></li>
-                                <li><a class="dropdown-item" asp-controller="PaymentMethods" asp-action="Index">Способи оплати</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" asp-controller="ReservationStatuses" asp-action="Index">Статуси бронювань</a></li>
-                            </ul>
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            if (User.IsInRole("Owner"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Apartments" asp-action="Index">Мої об'єкти</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Reservations" asp-action="Index">Бронювання</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Apartments" asp-action="Index">Пошук житла</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Reservations" asp-action="Index">Мої поїздки</a>
+                                </li>
+                            }
+                        }
                     </ul>
+
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
@@ -65,13 +74,19 @@
 
     <footer class="bg-light border-top py-3 mt-auto">
         <div class="container text-center text-muted">
-            <span>&copy; 2026 - ApartmentRentalSystem - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-decoration-none text-primary">Конфіденційність</a></span>
+            <span>
+                &copy; 2026 - ApartmentRentalSystem -
+                <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-decoration-none text-primary">
+                    Конфіденційність
+                </a>
+            </span>
         </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

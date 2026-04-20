@@ -1,71 +1,170 @@
-﻿@model ApartmentRentalSystem.Domain.Entities.Apartment
+﻿@model ApartmentRentalSystem.WebMVC.Models.ApartmentCreateViewModel
 
 @{
-    ViewData["Title"] = "Редагування помешкання";
+    ViewData["Title"] = "Редагувати житло";
+    var amenities = ViewBag.Amenities as List<ApartmentRentalSystem.Domain.Entities.Amenity>;
 }
 
-<h1>Редагувати</h1>
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
 
-<h4>Апартаменти</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="card-header bg-primary py-5 d-flex align-items-center justify-content-center edit-hero-header">
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm edit-hero-icon">
+                        <i class="fa-solid fa-pen-to-square fa-2x text-primary"></i>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="HostId" class="control-label"></label>
-                <select asp-for="HostId" class="form-control" asp-items="ViewBag.HostId"></select>
-                <span asp-validation-for="HostId" class="text-danger"></span>
+                <div class="card-body p-5 bg-white">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-4 fw-bold"></div>
+
+                    <form asp-action="Edit" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
+                        <input type="hidden" name="id" value="@ViewContext.RouteData.Values["id"]" />
+
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Title" class="form-control border-light shadow-sm form-soft-bg" placeholder="Назва" />
+                                    <label class="text-muted">Назва апартаментів</label>
+                                    <span asp-validation-for="Title" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="City" class="form-control border-light shadow-sm form-soft-bg" placeholder="Місто" />
+                                    <label class="text-muted">Місто</label>
+                                    <span asp-validation-for="City" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Address" class="form-control border-light shadow-sm form-soft-bg" placeholder="Адреса" />
+                                    <label class="text-muted">Адреса</label>
+                                    <span asp-validation-for="Address" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <select asp-for="HousingTypeId" class="form-select border-light shadow-sm form-soft-bg" asp-items="ViewBag.HousingTypeId">
+                                        <option value="">-- Оберіть тип --</option>
+                                    </select>
+                                    <label class="text-muted">Тип житла</label>
+                                    <span asp-validation-for="HousingTypeId" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="MaxGuests" type="number" class="form-control border-light shadow-sm form-soft-bg" placeholder="Гості" />
+                                    <label class="text-muted">Макс. гостей</label>
+                                    <span asp-validation-for="MaxGuests" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="PriceAmount" type="number" step="0.01" class="form-control border-light shadow-sm fw-bold text-primary form-soft-bg" placeholder="1000" />
+                                    <label class="text-muted">Сума</label>
+                                    <span asp-validation-for="PriceAmount" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-floating">
+                                    <select asp-for="TimeUnitId" class="form-select border-light shadow-sm form-soft-bg" asp-items="ViewBag.TimeUnitId">
+                                        <option value="">-- Період --</option>
+                                    </select>
+                                    <label class="text-muted">За який час?</label>
+                                    <span asp-validation-for="TimeUnitId" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-floating">
+                                    <select asp-for="Currency" class="form-select border-light shadow-sm form-soft-bg">
+                                        <option value="UAH">UAH (₴)</option>
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                    </select>
+                                    <label class="text-muted">Валюта</label>
+                                    <span asp-validation-for="Currency" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Area" type="number" step="0.1" class="form-control border-light shadow-sm form-soft-bg" placeholder="Площа" />
+                                    <label class="text-muted">Площа (м²)</label>
+                                    <span asp-validation-for="Area" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label asp-for="Description" class="form-label text-muted fw-bold">Опис</label>
+                                <textarea asp-for="Description"
+                                          class="form-control border-light shadow-sm form-soft-bg"
+                                          rows="5"
+                                          placeholder="Опишіть житло, його переваги та особливості"></textarea>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <div class="p-3 border rounded-3 form-soft-bg">
+                                    <label class="form-label text-muted fw-bold mb-3">
+                                        <i class="fa-solid fa-list-check me-2"></i>Зручності
+                                    </label>
+
+                                    @if (amenities != null && amenities.Any())
+                                    {
+                                        <div class="row g-2">
+                                            @foreach (var amenity in amenities)
+                                            {
+                                                var isChecked = Model.SelectedAmenityIds != null && Model.SelectedAmenityIds.Contains(amenity.Id);
+
+                                                <div class="col-md-6 col-lg-4">
+                                                    <div class="form-check amenity-check">
+                                                        <input class="form-check-input"
+                                                               type="checkbox"
+                                                               name="SelectedAmenityIds"
+                                                               value="@amenity.Id"
+                                                               id="amenity_@amenity.Id"
+                                                        @(isChecked ? "checked" : null) />
+                                                        <label class="form-check-label" for="amenity_@amenity.Id">
+                                                            @amenity.Name
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0">Список зручностей поки що недоступний.</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="w-100 btn btn-primary rounded-pill py-3 fw-bold shadow-sm">
+                                <i class="fa-solid fa-floppy-disk me-2"></i>ЗБЕРЕГТИ ЗМІНИ
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer bg-white border-0 text-center pb-4">
+                    <a asp-action="Index" class="text-muted text-decoration-none small">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Назад до списку
+                    </a>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label asp-for="HousingTypeId" class="control-label"></label>
-                <select asp-for="HousingTypeId" class="form-control" asp-items="ViewBag.HousingTypeId"></select>
-                <span asp-validation-for="HousingTypeId" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="City" class="control-label"></label>
-                <input asp-for="City" class="form-control" />
-                <span asp-validation-for="City" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="MaxGuests" class="control-label"></label>
-                <input asp-for="MaxGuests" class="form-control" />
-                <span asp-validation-for="MaxGuests" class="text-danger"></span>
-            </div>
-
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
-                </label>
-            </div>
-
-            <input type="hidden" asp-for="Id" />
-
-            <div class="form-group mt-3">
-                <input type="submit" value="Зберегти" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div class="mt-2">
-    <a asp-action="Index">Назад до списку</a>
 </div>
 
 @section Scripts {

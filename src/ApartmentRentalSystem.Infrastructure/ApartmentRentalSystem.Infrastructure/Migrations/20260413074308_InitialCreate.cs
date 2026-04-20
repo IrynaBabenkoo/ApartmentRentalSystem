@@ -4,14 +4,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+#pragma warning disable CA1814 
 
 namespace ApartmentRentalSystem.Infrastructure.Migrations
 {
-    /// <inheritdoc />
-    public partial class AddUserRolesTable : Migration
+    public partial class InitialCreate : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -25,6 +23,31 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_HousingTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IdentityUser",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    UserName = table.Column<string>(type: "text", nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "text", nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdentityUser", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -128,13 +151,14 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    HostId = table.Column<int>(type: "integer", nullable: false),
+                    HostId = table.Column<string>(type: "text", nullable: false),
                     HousingTypeId = table.Column<int>(type: "integer", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     City = table.Column<string>(type: "text", nullable: false),
                     Address = table.Column<string>(type: "text", nullable: false),
                     MaxGuests = table.Column<int>(type: "integer", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -146,11 +170,16 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Apartments_Users_HostId",
+                        name: "FK_Apartments_IdentityUser_HostId",
                         column: x => x.HostId,
-                        principalTable: "Users",
+                        principalTable: "IdentityUser",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Apartments_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -163,8 +192,8 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                     PriceTypeId = table.Column<int>(type: "integer", nullable: false),
                     Amount = table.Column<decimal>(type: "numeric", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
-                    ValidFrom = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ValidTo = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    ValidFrom = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ValidTo = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -194,8 +223,8 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                     StatusId = table.Column<int>(type: "integer", nullable: false),
                     unit_id = table.Column<int>(type: "integer", nullable: false),
                     UnitsCount = table.Column<int>(type: "integer", nullable: false),
-                    StartAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    StartAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    EndAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     price_type_id_snapshot = table.Column<int>(type: "integer", nullable: true),
                     unit_amount_snapshot = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
                     currency_snapshot = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
@@ -241,7 +270,7 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                     Amount = table.Column<decimal>(type: "numeric", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
                     PaymentStatus = table.Column<string>(type: "text", nullable: false),
-                    PaidAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    PaidAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -270,7 +299,7 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                     changed_by = table.Column<int>(type: "integer", nullable: false),
                     ChangeType = table.Column<string>(type: "text", nullable: false),
                     Note = table.Column<string>(type: "text", nullable: false),
-                    ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    ChangedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -317,6 +346,11 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                 name: "IX_Apartments_HousingTypeId",
                 table: "Apartments",
                 column: "HousingTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Apartments_UserId",
+                table: "Apartments",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_MethodId",
@@ -370,7 +404,6 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                 column: "RoleId");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
@@ -402,6 +435,9 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "HousingTypes");
+
+            migrationBuilder.DropTable(
+                name: "IdentityUser");
 
             migrationBuilder.DropTable(
                 name: "Users");

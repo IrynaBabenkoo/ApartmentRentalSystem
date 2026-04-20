@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Імпорт житла з Excel";
+}
+
+<section class="page-header mb-4">
+    <div>
+        <h1 class="page-title mb-1">Імпорт житла з Excel</h1>
+        <p class="page-subtitle mb-0">
+            Завантажте файл Excel для масового додавання або оновлення оголошень.
+        </p>
+    </div>
+</section>
+
+<section class="home-section-card mb-5">
+    <div class="row">
+        <div class="col-lg-8">
+            @using (Html.BeginForm("Import", "Apartments", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label for="apartmentsFile" class="form-label fw-bold">Оберіть файл для завантаження</label>
+                    <input type="file" name="apartmentsFile" id="apartmentsFile" class="form-control" accept=".xlsx" />
+                </div>
+
+                <div class="d-flex gap-2">
+                    <input class="btn btn-primary px-4" type="submit" value="Завантажити" />
+                    <a asp-action="Index" class="btn btn-outline-primary px-4">Назад</a>
+                </div>
+            }
+        </div>
+    </div>
+</section>

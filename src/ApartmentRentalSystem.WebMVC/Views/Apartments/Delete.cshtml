@@ -1,63 +1,59 @@
 ﻿@model ApartmentRentalSystem.Domain.Entities.Apartment
 
 @{
-    ViewData["Title"] = "Видалення апартаментів";
+    ViewData["Title"] = "Видалення об'єкта";
 }
 
-<h1>Видалити</h1>
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
 
-<h3 class="text-danger">Ви впевнені, що хочете видалити це житло?</h3>
-<div>
-    <h4>Апартаменти</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.City)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.City)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Address)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Address)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.MaxGuests)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.MaxGuests)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.IsActive)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.IsActive)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Host)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Host.Email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingType)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingType.Name)
-        </dd>
-    </dl>
+                <div class="card-header bg-primary py-5 d-flex align-items-center justify-content-center" style="height: 160px; border-bottom: none;">
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 80px; height: 80px;">
+                        <i class="fa-solid fa-trash-can fa-2x text-primary"></i>
+                    </div>
+                </div>
 
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Підтвердити видалення" class="btn btn-danger" /> |
-        <a asp-action="Index" class="btn btn-secondary">Назад до списку</a>
-    </form>
+                <div class="card-body p-5 bg-white">
+                    <div class="text-center mb-4">
+                        <h5 class="text-dark fw-bold">Ви впевнені, що хочете видалити це оголошення?</h5>
+                        <p class="text-muted small">Цю дію неможливо буде скасувати.</p>
+                    </div>
+
+                    <div class="bg-light rounded-4 p-4 mb-4 text-center">
+                        <h6 class="text-dark fw-bold mb-1">@Model.Title</h6>
+                        <p class="text-muted small mb-0">
+                            <i class="fa-solid fa-location-dot me-1 text-primary"></i> @Model.City, @Model.Address
+                        </p>
+                    </div>
+
+                    <form asp-action="Delete">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
+                                <i class="fa-solid fa-circle-check me-2"></i>ПІДТВЕРДИТИ ВИДАЛЕННЯ
+                            </button>
+
+                            <a asp-action="Index" class="btn btn-link text-muted text-decoration-none fw-bold mt-2">
+                                <i class="fa-solid fa-xmark me-1"></i> СКАСУВАТИ
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    .btn-primary {
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(89, 49, 150, 0.15) !important;
+        }
+</style>

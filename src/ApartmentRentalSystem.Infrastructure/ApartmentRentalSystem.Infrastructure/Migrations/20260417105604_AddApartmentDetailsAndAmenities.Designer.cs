@@ -12,18 +12,78 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApartmentRentalSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApartmentContext))]
-    [Migration("20260223094249_AddUserRolesTable")]
-    partial class AddUserRolesTable
+    [Migration("20260417105604_AddApartmentDetailsAndAmenities")]
+    partial class AddApartmentDetailsAndAmenities
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "8.0.23")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.Amenity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Amenities");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Wi-Fi"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Парковка"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Кухня"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Кондиціонер"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Пральна машина"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Балкон"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "Телевізор"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = "Дозволено з тваринами"
+                        });
+                });
 
             modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.Apartment", b =>
                 {
@@ -37,15 +97,26 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal?>("Area")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("HostId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("HostId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("HousingTypeId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -57,13 +128,33 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("HostId");
 
                     b.HasIndex("HousingTypeId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("Apartments");
+                });
+
+            modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.ApartmentAmenity", b =>
+                {
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AmenityId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ApartmentId", "AmenityId");
+
+                    b.HasIndex("AmenityId");
+
+                    b.ToTable("ApartmentAmenities");
                 });
 
             modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.ApartmentPricing", b =>
@@ -88,10 +179,10 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("ValidFrom")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("ValidTo")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -138,7 +229,7 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("PaidAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
@@ -214,7 +305,7 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         .HasColumnName("currency_snapshot");
 
                     b.Property<DateTime>("EndAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("GuestId")
                         .HasColumnType("integer");
@@ -224,7 +315,7 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         .HasColumnName("price_type_id_snapshot");
 
                     b.Property<DateTime>("StartAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("integer");
@@ -270,7 +361,7 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("ChangedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("ChangedById")
                         .HasColumnType("integer")
@@ -390,10 +481,62 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
             modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.Apartment", b =>
                 {
-                    b.HasOne("ApartmentRentalSystem.Domain.Entities.User", "Host")
-                        .WithMany("OwnedApartments")
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Host")
+                        .WithMany()
                         .HasForeignKey("HostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -404,9 +547,32 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ApartmentRentalSystem.Domain.Entities.User", null)
+                        .WithMany("OwnedApartments")
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Host");
 
                     b.Navigation("HousingType");
+                });
+
+            modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.ApartmentAmenity", b =>
+                {
+                    b.HasOne("ApartmentRentalSystem.Domain.Entities.Amenity", "Amenity")
+                        .WithMany("ApartmentAmenities")
+                        .HasForeignKey("AmenityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApartmentRentalSystem.Domain.Entities.Apartment", "Apartment")
+                        .WithMany("ApartmentAmenities")
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Amenity");
+
+                    b.Navigation("Apartment");
                 });
 
             modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.ApartmentPricing", b =>
@@ -523,8 +689,15 @@ namespace ApartmentRentalSystem.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.Amenity", b =>
+                {
+                    b.Navigation("ApartmentAmenities");
+                });
+
             modelBuilder.Entity("ApartmentRentalSystem.Domain.Entities.Apartment", b =>
                 {
+                    b.Navigation("ApartmentAmenities");
+
                     b.Navigation("Pricings");
 
                     b.Navigation("Reservations");

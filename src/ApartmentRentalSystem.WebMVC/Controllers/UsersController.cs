@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +9,7 @@ using ApartmentRentalSystem.Infrastructure;
 
 namespace ApartmentRentalSystem.WebMVC.Controllers
 {
+    [Authorize]
     public class UsersController : Controller
     {
         private readonly ApartmentContext _context;
@@ -19,28 +19,82 @@ namespace ApartmentRentalSystem.WebMVC.Controllers
             _context = context;
         }
 
-        // GET: Users
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> MyProfile()
         {
-            var apartmentContext = _context.Users.Include(u => u.Role);
-            return View(await apartmentContext.ToListAsync());
+            var email = User.Identity?.Name;
+
+            if (string.IsNullOrWhiteSpace(email))
+                return RedirectToAction("Index", "Home");
+
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                return RedirectToAction(nameof(CreateProfileFromCurrentIdentity));
+            }
+
+            return View("Details", user);
+        }
+
+        public async Task<IActionResult> CreateProfileFromCurrentIdentity()
+        {
+            var email = User.Identity?.Name;
+
+            if (string.IsNullOrWhiteSpace(email))
+                return RedirectToAction("Index", "Home");
+
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (existingUser != null)
+                return RedirectToAction(nameof(MyProfile));
+
+            var isOwner = User.IsInRole("Owner");
+            var roleName = isOwner ? "Host" : "Guest";
+
+            var role = await _context.UserRoles
+                .FirstOrDefaultAsync(r => r.Name == roleName);
+
+            if (role == null)
+                return RedirectToAction("Index", "Home");
+
+            var user = new User
+            {
+                FullName = email,
+                Email = email,
+                Phone = string.Empty,
+                RoleId = role.Id
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(MyProfile));
+        }
+
+        // Список користувачів звичайним користувачам не потрібен
+        public IActionResult Index()
+        {
+            return RedirectToAction(nameof(MyProfile));
         }
 
         // GET: Users/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var user = await _context.Users
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (user == null)
-            {
                 return NotFound();
-            }
+
+            if (!await CanAccessUserAsync(user))
+                return Forbid();
 
             return View(user);
         }
@@ -48,54 +102,60 @@ namespace ApartmentRentalSystem.WebMVC.Controllers
         // GET: Users/Create
         public IActionResult Create()
         {
-            ViewData["RoleId"] = new SelectList(_context.UserRoles, "Id", "Name");
-            return View();
+            return Forbid();
         }
 
         // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FullName,Email,Phone,RoleId,Id")] User user)
+        public IActionResult Create([Bind("FullName,Email,Phone,RoleId,Id")] User user)
         {
-            ModelState.Remove("Role");
-
-            if (ModelState.IsValid)
-            {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["RoleId"] = new SelectList(_context.UserRoles, "Id", "Name", user.RoleId);
-            return View(user);
+            return Forbid();
         }
 
         // GET: Users/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var user = await _context.Users.FindAsync(id);
             if (user == null)
-            {
                 return NotFound();
-            }
-            ViewData["RoleId"] = new SelectList(_context.UserRoles, "Id", "Name", user.RoleId);
+
+            if (!await CanAccessUserAsync(user))
+                return Forbid();
+
+            ViewData["RoleId"] = new SelectList(
+                _context.UserRoles.Where(r => r.Id == user.RoleId),
+                "Id",
+                "Name",
+                user.RoleId
+            );
+
             return View(user);
         }
 
         // POST: Users/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("FullName,Email,Phone,RoleId,Id")] User user)
         {
-            if (id != user.Id) return NotFound();
+            if (id != user.Id)
+                return NotFound();
+
+            var existingUser = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (existingUser == null)
+                return NotFound();
+
+            if (!await CanAccessUserAsync(existingUser))
+                return Forbid();
+
+            // Користувач не повинен змінювати собі роль вручну
+            user.RoleId = existingUser.RoleId;
 
             ModelState.Remove("Role");
 
@@ -103,58 +163,55 @@ namespace ApartmentRentalSystem.WebMVC.Controllers
             {
                 try
                 {
-                    _context.Update(user);
+                    existingUser.FullName = user.FullName;
+                    existingUser.Email = user.Email;
+                    existingUser.Phone = user.Phone;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!UserExists(user.Id))
-                    {
                         return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
+
+                return RedirectToAction(nameof(MyProfile));
             }
-            ViewData["RoleId"] = new SelectList(_context.UserRoles, "Id", "Name", user.RoleId);
+
+            ViewData["RoleId"] = new SelectList(
+                _context.UserRoles.Where(r => r.Id == existingUser.RoleId),
+                "Id",
+                "Name",
+                existingUser.RoleId
+            );
+
             return View(user);
         }
 
         // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return View(user);
+            return Forbid();
         }
 
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
-            {
-                _context.Users.Remove(user);
-            }
+            return Forbid();
+        }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+        private async Task<bool> CanAccessUserAsync(User user)
+        {
+            var currentEmail = User.Identity?.Name;
+
+            if (string.IsNullOrWhiteSpace(currentEmail))
+                return false;
+
+            return await _context.Users.AnyAsync(u => u.Id == user.Id && u.Email == currentEmail);
         }
 
         private bool UserExists(int id)

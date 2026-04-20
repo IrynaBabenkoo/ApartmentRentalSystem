@@ -1,71 +1,167 @@
 ﻿@model IEnumerable<ApartmentRentalSystem.Domain.Entities.Reservation>
 
 @{
-    ViewData["Title"] = "Бронювання";
+    ViewData["Title"] = ViewBag.PageTitle ?? "Бронювання";
+    bool isOwner = ViewBag.IsOwner ?? false;
+    string pageTitle = ViewBag.PageTitle ?? "Бронювання";
+    string pageSubtitle = ViewBag.PageSubtitle ?? "Переглядайте свої бронювання.";
+    string emptyTitle = ViewBag.EmptyTitle ?? "Поки що немає бронювань";
+    string emptySubtitle = ViewBag.EmptySubtitle ?? "Бронювання з’являться тут.";
 }
 
-<div class="container-fluid mt-4 px-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary fw-bold">Список бронювань</h2>
-        <a asp-action="Create" class="btn btn-primary shadow-sm">Створити нове бронювання</a>
+<section class="page-header mb-4">
+    <div>
+        <h1 class="page-title mb-1">@pageTitle</h1>
+        <p class="page-subtitle mb-0">@pageSubtitle</p>
     </div>
+</section>
 
-    <div class="card shadow-sm border-0">
+<section class="home-section-card mb-5">
+    @if (Model != null && Model.Any())
+    {
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table align-middle reservations-table mb-0">
+                <thead>
                     <tr>
-                        <th class="ps-3">Початок / Кінець</th>
-                        <th>К-ть</th>
+                        <th>Заїзд / Виїзд</th>
+                        <th>Період</th>
                         <th>Житло</th>
-                        <th>Гість</th>
-                        <th>Ціна (Разом)</th>
+
+                        @if (isOwner)
+                        {
+                            <th>Гість</th>
+                        }
+
+                        <th>Ціна (разом)</th>
                         <th>Статус</th>
-                        <th class="text-end pe-3">Дії</th>
+                        <th class="text-end">Дії</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
+                        var statusName = item.Status?.Name ?? "Невідомо";
+                        var badgeClass = "reservation-status reservation-status-neutral";
+
+                        if (statusName == "Очікує підтвердження")
+                        {
+                            badgeClass = "reservation-status reservation-status-pending";
+                        }
+                        else if (statusName == "Підтверджено")
+                        {
+                            badgeClass = "reservation-status reservation-status-approved";
+                        }
+                        else if (statusName == "Скасовано")
+                        {
+                            badgeClass = "reservation-status reservation-status-cancelled";
+                        }
+
                         <tr>
-                            <td class="ps-3">
-                                <div class="small">@item.StartAt.ToShortDateString()</div>
-                                <div class="small text-muted">@item.EndAt.ToShortDateString()</div>
-                            </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.UnitsCount)
-                                <span class="small text-muted">(@item.TimeUnit.Name)</span>
-                            </td>
-                            <td>
-                                <div class="fw-bold text-truncate" style="max-width: 150px;">
-                                    @Html.DisplayFor(modelItem => item.Apartment.Address)
+                                <div class="fw-semibold">
+                                    @item.StartAt.ToString("dd.MM.yyyy")
+                                </div>
+                                <div class="text-muted small">
+                                    @item.EndAt.ToString("dd.MM.yyyy")
                                 </div>
                             </td>
+
                             <td>
-                                <small>@Html.DisplayFor(modelItem => item.Guest.Email)</small>
-                            </td>
-                            <td>
-                                <span class="fw-bold">@item.TotalPrice @item.CurrencySnapshot</span>
-                                <div class="x-small text-muted" style="font-size: 0.75rem;">
-                                    @item.UnitAmountSnapshot за од.
+                                <div class="fw-semibold reservation-period-text">
+                                    @item.UnitsCount @(item.TimeUnit?.Name?.ToLower() ?? "од.")
                                 </div>
                             </td>
+
                             <td>
-                                <span class="badge bg-info text-dark">
-                                    @Html.DisplayFor(modelItem => item.Status.Name)
+                                <div class="fw-semibold">
+                                    @(item.Apartment?.Title ?? "—")
+                                </div>
+                            </td>
+
+                            @if (isOwner)
+                            {
+                                <td>
+                                    <div class="fw-semibold">
+                                        @(item.Guest?.Email ?? $"ID: {item.GuestId}")
+                                    </div>
+                                </td>
+                            }
+
+                            <td>
+                                <span class="fw-semibold text-primary">
+                                    @(item.TotalPrice?.ToString("0.##") ?? "—")
+                                    @if (!string.IsNullOrWhiteSpace(item.CurrencySnapshot))
+                                    {
+                                        @item.CurrencySnapshot
+                                    }
                                 </span>
                             </td>
-                            <td class="text-end pe-3">
-                                <div class="btn-group">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">Змінити</a>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Деталі</a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Видалити</a>
-                                </div>
+
+                            <td>
+                                <span class="@badgeClass">
+                                    @statusName
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+                                @if (isOwner)
+                                {
+                                    <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                           class="btn btn-outline-primary btn-sm px-3" title="Деталі">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+
+                                        @if (statusName == "Очікує підтвердження")
+                                        {
+                                            <form asp-action="Confirm" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-primary btn-sm px-3" title="Підтвердити">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="Reject" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-secondary btn-sm px-3" title="Відхилити">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="btn-group shadow-sm">
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                           class="btn btn-outline-primary btn-sm px-3" title="Деталі">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+
+                                        <a asp-action="Delete" asp-route-id="@item.Id"
+                                           class="btn btn-outline-primary btn-sm px-3" title="Скасувати бронювання">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </a>
+                                    </div>
+                                }
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
-    </div>
-</div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div class="empty-icon mx-auto mb-3">
+                <i class="fa-solid fa-calendar-xmark"></i>
+            </div>
+
+            <h5 class="fw-bold text-dark">@emptyTitle</h5>
+            <p class="text-muted mb-0">
+                @emptySubtitle
+            </p>
+        </div>
+    }
+</section>

@@ -1,0 +1,30 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using ApartmentRentalSystem.WebMVC.Data.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            <a id="manage" class="nav-link text-white" asp-controller="Users" asp-action="MyProfile" title="Профіль">
+                <i class="fa-solid fa-circle-user me-1"></i> Вітаю, @UserManager.GetUserName(User)!
+            </a>
+        </li>
+        <li class="nav-item">
+            <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button id="logout" type="submit" class="nav-link btn btn-link text-white border-0">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Вийти
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-white fw-bold" id="login" asp-area="Identity" asp-page="/Account/Login">
+                <i class="fa-solid fa-user-circle fa-lg me-1"></i> Вхід
+            </a>
+        </li>
+    }
+</ul>
