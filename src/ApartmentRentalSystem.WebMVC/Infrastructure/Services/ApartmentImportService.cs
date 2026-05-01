@@ -43,26 +43,31 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
                 if (RowIsEmpty(row))
                     continue;
 
-                await AddApartmentAsync(row, currentUserId, cancellationToken);
+                await AddOrUpdateApartmentAsync(row, currentUserId, cancellationToken);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
         }
 
-        private async Task AddApartmentAsync(IXLRow row, string ownerId, CancellationToken cancellationToken)
+        private async Task AddOrUpdateApartmentAsync(IXLRow row, string ownerId, CancellationToken cancellationToken)
         {
-            var title = GetTitle(row);
-            var city = GetCity(row);
-            var address = GetAddress(row);
+            var apartmentId = GetApartmentId(row);
 
-            var apartment = await _context.Apartments
-                .Include(a => a.ApartmentAmenities)
-                .Include(a => a.Pricings)
-                .FirstOrDefaultAsync(a =>
-                    a.Title == title &&
-                    a.City == city &&
-                    a.Address == address,
-                    cancellationToken);
+            Apartment? apartment = null;
+
+            if (apartmentId.HasValue)
+            {
+                apartment = await _context.Apartments
+                    .Include(a => a.ApartmentAmenities)
+                    .Include(a => a.Pricings)
+                    .FirstOrDefaultAsync(a => a.Id == apartmentId.Value, cancellationToken);
+
+                if (apartment is null)
+                    throw new ApartmentImportException($"Оголошення з Id={apartmentId.Value} не знайдено.");
+
+                if (apartment.HostId != ownerId)
+                    throw new ApartmentImportException($"Оголошення з Id={apartmentId.Value} не належить поточному власнику.");
+            }
 
             var housingType = await GetHousingTypeAsync(GetHousingTypeName(row), cancellationToken);
             var timeUnit = await GetTimeUnitAsync(GetTimeUnitName(row), cancellationToken);
@@ -72,9 +77,9 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
             {
                 apartment = new Apartment
                 {
-                    Title = title,
-                    City = city,
-                    Address = address,
+                    Title = GetTitle(row),
+                    City = GetCity(row),
+                    Address = GetAddress(row),
                     HousingTypeId = housingType.Id,
                     MaxGuests = GetMaxGuests(row),
                     Area = GetArea(row),
@@ -89,18 +94,18 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
             }
             else
             {
+                apartment.Title = GetTitle(row);
+                apartment.City = GetCity(row);
+                apartment.Address = GetAddress(row);
                 apartment.HousingTypeId = housingType.Id;
                 apartment.MaxGuests = GetMaxGuests(row);
                 apartment.Area = GetArea(row);
                 apartment.Description = GetDescription(row);
                 apartment.IsActive = GetIsActive(row);
-
-                if (string.IsNullOrWhiteSpace(apartment.HostId))
-                    apartment.HostId = ownerId;
             }
 
             await UpdatePricingAsync(apartment, priceType.Id, GetPrice(row), GetCurrency(row), cancellationToken);
-            await UpdateAmenitiesAsync(apartment, GetAmenities(row), cancellationToken);
+            await SyncAmenitiesAsync(apartment, GetAmenities(row), cancellationToken);
         }
 
         private async Task UpdatePricingAsync(
@@ -134,16 +139,20 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
             currentPricing.Currency = currency;
         }
 
-        private async Task UpdateAmenitiesAsync(
+        private async Task SyncAmenitiesAsync(
             Apartment apartment,
             IReadOnlyCollection<string> amenityNames,
             CancellationToken cancellationToken)
         {
-            var existingAmenityIds = apartment.ApartmentAmenities
-                .Select(x => x.AmenityId)
-                .ToHashSet();
+            var normalizedAmenityNames = amenityNames
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            foreach (var amenityName in amenityNames)
+            var targetAmenityIds = new HashSet<int>();
+
+            foreach (var amenityName in normalizedAmenityNames)
             {
                 var amenity = await _context.Amenities
                     .FirstOrDefaultAsync(a => a.Name == amenityName, cancellationToken);
@@ -159,12 +168,31 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
                     await _context.SaveChangesAsync(cancellationToken);
                 }
 
-                if (!existingAmenityIds.Contains(amenity.Id))
+                targetAmenityIds.Add(amenity.Id);
+            }
+
+            var currentLinks = apartment.ApartmentAmenities.ToList();
+
+            foreach (var link in currentLinks)
+            {
+                if (!targetAmenityIds.Contains(link.AmenityId))
+                {
+                    _context.ApartmentAmenities.Remove(link);
+                }
+            }
+
+            var existingAmenityIds = apartment.ApartmentAmenities
+                .Select(x => x.AmenityId)
+                .ToHashSet();
+
+            foreach (var amenityId in targetAmenityIds)
+            {
+                if (!existingAmenityIds.Contains(amenityId))
                 {
                     _context.ApartmentAmenities.Add(new ApartmentAmenity
                     {
                         ApartmentId = apartment.Id,
-                        AmenityId = amenity.Id
+                        AmenityId = amenityId
                     });
                 }
             }
@@ -218,18 +246,31 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
 
         private static bool RowIsEmpty(IXLRow row)
         {
-            return row.Cells(1, 12).All(c => string.IsNullOrWhiteSpace(c.GetValue<string>()));
+            return row.Cells(1, 13).All(c => string.IsNullOrWhiteSpace(c.GetValue<string>()));
         }
 
-        private static string GetTitle(IXLRow row) => row.Cell(1).GetValue<string>().Trim();
-        private static string GetCity(IXLRow row) => row.Cell(2).GetValue<string>().Trim();
-        private static string GetAddress(IXLRow row) => row.Cell(3).GetValue<string>().Trim();
-        private static string GetHousingTypeName(IXLRow row) => row.Cell(4).GetValue<string>().Trim();
-        private static int GetMaxGuests(IXLRow row) => row.Cell(5).GetValue<int>();
+        private static int? GetApartmentId(IXLRow row)
+        {
+            var raw = row.Cell(1).GetValue<string>().Trim();
+
+            if (string.IsNullOrWhiteSpace(raw))
+                return null;
+
+            if (int.TryParse(raw, out var id))
+                return id;
+
+            throw new ApartmentImportException($"Некоректне значення Id: '{raw}'.");
+        }
+
+        private static string GetTitle(IXLRow row) => row.Cell(2).GetValue<string>().Trim();
+        private static string GetCity(IXLRow row) => row.Cell(3).GetValue<string>().Trim();
+        private static string GetAddress(IXLRow row) => row.Cell(4).GetValue<string>().Trim();
+        private static string GetHousingTypeName(IXLRow row) => row.Cell(5).GetValue<string>().Trim();
+        private static int GetMaxGuests(IXLRow row) => row.Cell(6).GetValue<int>();
 
         private static decimal? GetArea(IXLRow row)
         {
-            var raw = row.Cell(6).GetValue<string>().Trim();
+            var raw = row.Cell(7).GetValue<string>().Trim();
 
             if (string.IsNullOrWhiteSpace(raw))
                 return null;
@@ -243,11 +284,11 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
             return null;
         }
 
-        private static string GetDescription(IXLRow row) => row.Cell(7).GetValue<string>().Trim();
+        private static string GetDescription(IXLRow row) => row.Cell(8).GetValue<string>().Trim();
 
         private static decimal GetPrice(IXLRow row)
         {
-            var raw = row.Cell(8).GetValue<string>().Trim();
+            var raw = row.Cell(9).GetValue<string>().Trim();
 
             if (decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
                 return value;
@@ -260,13 +301,13 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
 
         private static string GetCurrency(IXLRow row)
         {
-            var value = row.Cell(9).GetValue<string>().Trim();
+            var value = row.Cell(10).GetValue<string>().Trim();
             return string.IsNullOrWhiteSpace(value) ? "UAH" : value;
         }
 
         private static string GetTimeUnitName(IXLRow row)
         {
-            var value = row.Cell(10).GetValue<string>().Trim();
+            var value = row.Cell(11).GetValue<string>().Trim();
 
             if (string.IsNullOrWhiteSpace(value))
                 throw new ApartmentImportException("Не вказано одиницю часу.");
@@ -276,20 +317,20 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
 
         private static bool GetIsActive(IXLRow row)
         {
-            var value = row.Cell(11).GetValue<string>().Trim().ToLower();
+            var value = row.Cell(12).GetValue<string>().Trim().ToLower();
             return value is "так" or "true" or "1" or "yes";
         }
 
         private static IReadOnlyCollection<string> GetAmenities(IXLRow row)
         {
-            var raw = row.Cell(12).GetValue<string>().Trim();
+            var raw = row.Cell(13).GetValue<string>().Trim();
 
             if (string.IsNullOrWhiteSpace(raw))
                 return Array.Empty<string>();
 
             return raw
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Distinct()
+                .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
     }

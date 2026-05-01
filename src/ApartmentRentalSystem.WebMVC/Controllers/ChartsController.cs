@@ -15,44 +15,107 @@ namespace ApartmentRentalSystem.WebMVC.Controllers
             _context = context;
         }
 
-        public record CountByCityResponseItem(string City, int Count);
-        public record CountByHousingTypeResponseItem(string HousingType, int Count);
+        public record AveragePriceByCityResponseItem(string City, decimal AveragePrice);
 
-        [HttpGet("countByCity")]
-        public async Task<JsonResult> GetCountByCityAsync(CancellationToken cancellationToken)
+        public record OffersByCityResponseItem(double Lat, double Lon, string City, int Count);
+
+        private static readonly Dictionary<string, (double Lat, double Lon)> CityCoords =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Київ"] = (50.45, 30.52),
+                ["Одеса"] = (46.48, 30.73),
+                ["Львів"] = (49.84, 24.03),
+                ["Харків"] = (49.99, 36.23),
+                ["Дніпро"] = (48.46, 35.04),
+                ["Вінниця"] = (49.23, 28.47),
+                ["Ужгород"] = (48.62, 22.30),
+                ["Яремче"] = (48.46, 24.56),
+                ["Івано-Франківськ"] = (48.92, 24.71),
+                ["Буковель"] = (48.36, 24.39),
+            };
+
+        [HttpGet("averagePriceByCity")]
+        public async Task<JsonResult> GetAveragePriceByCityAsync(
+            [FromQuery] string? housingType,
+            CancellationToken cancellationToken)
         {
-            var rawData = await _context.Apartments
+            var apartments = await _context.Apartments
                 .Where(a => a.IsActive)
-                .Select(a => a.City)
+                .Include(a => a.HousingType)
+                .Include(a => a.Pricings)
+                    .ThenInclude(p => p.PriceType)
+                        .ThenInclude(pt => pt.TimeUnit)
                 .ToListAsync(cancellationToken);
 
-            var responseItems = rawData
-                .Where(city => !string.IsNullOrWhiteSpace(city))
-                .GroupBy(city => city)
-                .Select(group => new CountByCityResponseItem(group.Key, group.Count()))
+            var filteredApartments = apartments.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(housingType))
+            {
+                filteredApartments = filteredApartments.Where(a =>
+                    a.HousingType != null &&
+                    a.HousingType.Name.Equals(housingType, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var responseItems = filteredApartments
+                .Select(a => new
+                {
+                    City = a.City?.Trim(),
+                    NightPrice = a.Pricings
+                        .Where(p =>
+                            p.PriceType != null &&
+                            p.PriceType.TimeUnit != null &&
+                            IsNightUnit(p.PriceType.TimeUnit.Name))
+                        .OrderByDescending(p => p.ValidFrom)
+                        .Select(p => (decimal?)p.Amount)
+                        .FirstOrDefault()
+                })
+                .Where(x => !string.IsNullOrWhiteSpace(x.City) && x.NightPrice.HasValue)
+                .GroupBy(x => x.City!)
+                .Select(group => new AveragePriceByCityResponseItem(
+                    group.Key,
+                    Math.Round(group.Average(x => x.NightPrice!.Value), 0)
+                ))
                 .OrderBy(x => x.City)
                 .ToList();
 
             return new JsonResult(responseItems);
         }
 
-        [HttpGet("countByHousingType")]
-        public async Task<JsonResult> GetCountByHousingTypeAsync(CancellationToken cancellationToken)
+        [HttpGet("offersByCity")]
+        public async Task<JsonResult> GetOffersByCityAsync(CancellationToken cancellationToken)
         {
-            var rawData = await _context.Apartments
-                .Where(a => a.IsActive)
-                .Include(a => a.HousingType)
-                .Select(a => a.HousingType != null ? a.HousingType.Name : "Невідомо")
+            var rawItems = await _context.Apartments
+                .Where(a => a.IsActive && !string.IsNullOrWhiteSpace(a.City))
+                .GroupBy(a => a.City)
+                .Select(group => new
+                {
+                    City = group.Key,
+                    Count = group.Count()
+                })
                 .ToListAsync(cancellationToken);
 
-            var responseItems = rawData
-                .Where(type => !string.IsNullOrWhiteSpace(type))
-                .GroupBy(type => type)
-                .Select(group => new CountByHousingTypeResponseItem(group.Key, group.Count()))
-                .OrderBy(x => x.HousingType)
+            var responseItems = rawItems
+                .Where(x => !string.IsNullOrWhiteSpace(x.City) && CityCoords.ContainsKey(x.City))
+                .Select(x => new OffersByCityResponseItem(
+                    CityCoords[x.City].Lat,
+                    CityCoords[x.City].Lon,
+                    x.City,
+                    x.Count
+                ))
+                .OrderBy(x => x.City)
                 .ToList();
 
             return new JsonResult(responseItems);
+        }
+
+        private static bool IsNightUnit(string unitName)
+        {
+            var normalized = unitName.Trim().ToLowerInvariant();
+
+            return normalized == "доба"
+                   || normalized == "ніч"
+                   || normalized == "day"
+                   || normalized == "night";
         }
     }
 }

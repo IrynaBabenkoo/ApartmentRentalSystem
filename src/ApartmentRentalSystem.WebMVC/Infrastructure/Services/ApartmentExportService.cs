@@ -13,6 +13,7 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
 
         private static readonly IReadOnlyList<string> HeaderNames = new[]
         {
+            "Id",
             "Назва",
             "Місто",
             "Адреса",
@@ -44,6 +45,9 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
                 throw new ArgumentException("Потік недоступний для запису.");
 
             var currentUserId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(currentUserId))
+                throw new ArgumentException("Не вдалося визначити поточного користувача.");
 
             var apartments = await _context.Apartments
                 .Include(a => a.HousingType)
@@ -92,16 +96,20 @@ namespace ApartmentRentalSystem.WebMVC.Infrastructure.Services
         private static void WriteApartment(IXLWorksheet worksheet, Apartment apartment, int rowIndex)
         {
             var currentPricing = apartment.Pricings
+                .Where(p => p.ValidTo == null)
                 .OrderByDescending(p => p.ValidFrom)
-                .FirstOrDefault();
+                .FirstOrDefault()
+                ?? apartment.Pricings.OrderByDescending(p => p.ValidFrom).FirstOrDefault();
 
             var amenities = string.Join(", ",
                 apartment.ApartmentAmenities
                     .Select(x => x.Amenity?.Name)
-                    .Where(x => !string.IsNullOrWhiteSpace(x)));
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .OrderBy(x => x));
 
             var column = 1;
 
+            worksheet.Cell(rowIndex, column++).Value = apartment.Id;
             worksheet.Cell(rowIndex, column++).Value = apartment.Title;
             worksheet.Cell(rowIndex, column++).Value = apartment.City;
             worksheet.Cell(rowIndex, column++).Value = apartment.Address;

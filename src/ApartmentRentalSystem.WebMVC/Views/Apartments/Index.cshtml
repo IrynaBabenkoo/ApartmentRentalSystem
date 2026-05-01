@@ -18,33 +18,47 @@
 
         @if (isOwner)
         {
-        <div class="d-flex gap-2 flex-wrap">
-            <a asp-action="Create" class="btn btn-primary px-4 py-2 fw-bold">
-                <i class="fa-solid fa-plus me-2"></i>Додати об'єкт
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-action="Create" class="btn btn-primary px-4 py-2 fw-bold">
+                    <i class="fa-solid fa-plus me-2"></i>Додати об'єкт
+                </a>
 
-            <a asp-action="Import" class="btn btn-outline-primary px-4 py-2 fw-bold">
-                <i class="fa-solid fa-file-arrow-up me-2"></i>Завантажити з файлу
-            </a>
+                <a asp-action="Import" class="btn btn-outline-primary px-4 py-2 fw-bold">
+                    <i class="fa-solid fa-file-arrow-up me-2"></i>Завантажити з файлу
+                </a>
 
-            <a asp-action="Export" class="btn btn-outline-primary px-4 py-2 fw-bold">
-                <i class="fa-solid fa-file-excel me-2"></i>Експортувати у файл
-            </a>
-        </div>
+                <a asp-action="Export" class="btn btn-outline-primary px-4 py-2 fw-bold">
+                    <i class="fa-solid fa-file-excel me-2"></i>Експортувати у файл
+                </a>
+            </div>
         }
     </div>
 </section>
 
 <section class="home-section-card mb-4">
     <div class="row g-4">
-        <div class="col-lg-6">
-            <h3 class="details-section-title mb-3">Кількість оголошень по містах</h3>
-            <div id="countByCityChart"></div>
+        <div class="col-xl-6">
+            <h3 class="details-section-title mb-3">Середня ціна за ніч</h3>
+
+            <div class="d-flex gap-2 mb-3">
+                <button type="button"
+                        class="btn btn-primary chart-type-btn active"
+                        data-housing-type="Квартира">
+                    Квартира
+                </button>
+                <button type="button"
+                        class="btn btn-outline-primary chart-type-btn"
+                        data-housing-type="Будинок">
+                    Будинок
+                </button>
+            </div>
+
+            <div id="averagePriceByCityChart" style="height: 430px;"></div>
         </div>
 
-        <div class="col-lg-6">
-            <h3 class="details-section-title mb-3">Кількість оголошень за типом житла</h3>
-            <div id="countByHousingTypeChart"></div>
+        <div class="col-xl-6">
+            <h3 class="details-section-title mb-3">Кількість оголошень по містах</h3>
+            <div id="offersByCityGeoChart" style="height: 430px;"></div>
         </div>
     </div>
 </section>
@@ -91,7 +105,7 @@
                 <div class="col-md-6 col-xl-4">
                     <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden hover-card home-card">
                         <div class="position-relative">
-                                    <img src="@(string.IsNullOrEmpty(item.ImagePath) ? "/images/apartments/default-apartment.jpg" : item.ImagePath)"
+                            <img src="@(string.IsNullOrEmpty(item.ImagePath) ? "/images/apartments/default-apartment.jpg" : item.ImagePath)"
                                  class="card-img-top home-card-img"
                                  alt="@item.Title" />
 
@@ -242,69 +256,137 @@
 @section Scripts {
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
+        let selectedHousingType = 'Квартира';
+
         google.charts.load('current', { packages: ['corechart'] });
-        google.charts.setOnLoadCallback(drawCharts);
+        google.charts.setOnLoadCallback(initializeCharts);
+
+        function initializeCharts() {
+            setupChartButtons();
+            drawCharts();
+            window.addEventListener('resize', drawCharts);
+        }
+
+        function setupChartButtons() {
+            const buttons = document.querySelectorAll('.chart-type-btn');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', function () {
+                    selectedHousingType = this.dataset.housingType;
+
+                    buttons.forEach(btn => {
+                        btn.classList.remove('btn-primary', 'active');
+                        btn.classList.add('btn-outline-primary');
+                    });
+
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-primary', 'active');
+
+                    drawAveragePriceByCityChart();
+                });
+            });
+        }
 
         function drawCharts() {
-            drawCountByCityChart();
-            drawCountByHousingTypeChart();
+            drawAveragePriceByCityChart();
+            drawOffersByCityGeoChart();
         }
 
-        function drawCountByCityChart() {
-            fetch('/api/charts/countByCity')
+        function drawAveragePriceByCityChart() {
+            fetch(`/api/charts/averagePriceByCity?housingType=${encodeURIComponent(selectedHousingType)}`)
                 .then(response => response.json())
                 .then(data => {
+                    const chartContainer = document.getElementById('averagePriceByCityChart');
+
+                    if (!data || data.length === 0) {
+                        chartContainer.innerHTML = '<p class="text-muted mb-0">Немає даних для побудови діаграми.</p>';
+                        return;
+                    }
+
                     const dataTable = new google.visualization.DataTable();
                     dataTable.addColumn('string', 'Місто');
-                    dataTable.addColumn('number', 'Кількість');
+                    dataTable.addColumn('number', 'Середня ціна');
+                    dataTable.addColumn({ type: 'string', role: 'annotation' });
 
                     data.forEach(item => {
-                        dataTable.addRow([item.city, item.count]);
+                        dataTable.addRow([
+                            item.city,
+                            Number(item.averagePrice),
+                            `₴${Math.round(item.averagePrice)}`
+                        ]);
                     });
 
                     const options = {
-                        width: '100%',
-                        height: 380,
+                        height: 430,
                         legend: { position: 'none' },
-                        chartArea: { width: '75%', height: '70%' }
+                        backgroundColor: 'transparent',
+                        chartArea: { left: 100, top: 20, width: '72%', height: '78%' },
+                        bars: 'horizontal',
+                        hAxis: {
+                            minValue: 0,
+                            textStyle: { color: '#6b7280' },
+                            gridlines: { color: '#ece7f7' }
+                        },
+                        vAxis: {
+                            textStyle: { color: '#4b5563' }
+                        },
+                        colors: ['#23a36d'],
+                        annotations: {
+                            textStyle: {
+                                color: '#ffffff',
+                                fontSize: 13,
+                                bold: true
+                            }
+                        }
                     };
 
-                    const chart = new google.visualization.ColumnChart(
-                        document.getElementById('countByCityChart')
-                    );
+                    const chart = new google.visualization.BarChart(chartContainer);
                     chart.draw(dataTable, options);
                 })
-                .catch(error => console.error('Помилка завантаження діаграми по містах:', error));
+                .catch(error => {
+                    console.error('Помилка побудови діаграми середньої ціни:', error);
+                });
         }
 
-        function drawCountByHousingTypeChart() {
-            fetch('/api/charts/countByHousingType')
-                .then(response => response.json())
+        function drawOffersByCityGeoChart() {
+            const map = L.map('offersByCityGeoChart', {
+                center: [49.0, 31.0], zoom: 6, attributionControl: false
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+            fetch('/api/charts/offersByCity')
+                .then(r => r.json())
                 .then(data => {
-                    const dataTable = new google.visualization.DataTable();
-                    dataTable.addColumn('string', 'Тип житла');
-                    dataTable.addColumn('number', 'Кількість');
+                    const maxCount = Math.max(...data.map(d => d.count));
 
-                    data.forEach(item => {
-                        dataTable.addRow([item.housingType, item.count]);
+                    data.forEach(d => {
+                        const size = 28 + ((d.count / maxCount) * 24);
+                        const bg = d.count === maxCount ? '#6f42c1' : d.count > 1 ? '#9b72e8' : '#b89df5';
+
+                        const icon = L.divIcon({
+                            className: '',
+                            html: `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+                                <div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};
+                                            color:#fff;font-size:${Math.round(size * 0.4)}px;font-weight:700;
+                                            display:flex;align-items:center;justify-content:center;
+                                            border:2px solid #fff;box-shadow:0 2px 6px rgba(111,66,193,0.4);">
+                                    ${d.count}
+                                </div>
+                                <div style="background:#fff;color:#3c2680;font-size:11px;font-weight:600;
+                                            padding:1px 6px;border-radius:6px;white-space:nowrap;
+                                            box-shadow:0 1px 3px rgba(0,0,0,0.15);">
+                                    ${d.city}
+                                </div>
+                            </div>`,
+                            iconSize: [size + 60, size + 28],
+                            iconAnchor: [(size + 60) / 2, size / 2],
+                        });
+
+                        L.marker([d.lat, d.lon], { icon }).addTo(map);
                     });
-
-                    const options = {
-                        width: '100%',
-                        height: 380,
-                        pieHole: 0.35,
-                        chartArea: { width: '85%', height: '75%' }
-                    };
-
-                    const chart = new google.visualization.PieChart(
-                        document.getElementById('countByHousingTypeChart')
-                    );
-                    chart.draw(dataTable, options);
-                })
-                .catch(error => console.error('Помилка завантаження діаграми за типом житла:', error));
+                });
         }
-
-        window.addEventListener('resize', drawCharts);
     </script>
 
     @if (isOwner)
