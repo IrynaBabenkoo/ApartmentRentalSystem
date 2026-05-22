@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApartmentRentalSystem.Domai
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApartmentRentalSystem.Infrastructure", "..\ApartmentRentalSystem.Infrastructure\ApartmentRentalSystem.Infrastructure\ApartmentRentalSystem.Infrastructure.csproj", "{F2A1A72C-8DB5-42D1-AE2F-3600FAFCB182}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApartmentRentalSystem.WebMVC", "..\ApartmentRentalSystem.WebMVC\ApartmentRentalSystem.WebMVC.csproj", "{C98F808B-F014-4CBA-9B0D-2EA96BBBAB69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApartmentRentalSystem.WebMVC", "..\ApartmentRentalSystem.WebMVC\ApartmentRentalSystem.WebMVC.csproj", "{C98F808B-F014-4CBA-9B0D-2EA96BBBAB69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApartmentRentalSystem.WebAPI", "ApartmentRentalSystem.WebAPI\ApartmentRentalSystem.WebAPI.csproj", "{E3704CA4-236C-4DA6-8B09-CC6B4CF58DC1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,10 @@ Global
 		{C98F808B-F014-4CBA-9B0D-2EA96BBBAB69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C98F808B-F014-4CBA-9B0D-2EA96BBBAB69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C98F808B-F014-4CBA-9B0D-2EA96BBBAB69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3704CA4-236C-4DA6-8B09-CC6B4CF58DC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3704CA4-236C-4DA6-8B09-CC6B4CF58DC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3704CA4-236C-4DA6-8B09-CC6B4CF58DC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3704CA4-236C-4DA6-8B09-CC6B4CF58DC1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

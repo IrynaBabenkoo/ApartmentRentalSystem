@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система оренди житла — Адмін-панель сервісів</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+
+        .table th {
+            background-color: #6c5ce7;
+            color: white;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: #6c5ce7;
+        }
+
+        .nav-pills .nav-link {
+            color: #6c5ce7;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Apartment Rental API Panel</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row text-center mb-4">
+            <div class="col">
+                <h1 class="display-5" id="page-title">Додаткові послуги</h1>
+                <p class="text-muted">Керування новими сутностями Лабораторної роботи №2 через Web API</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col d-flex justify-content-center">
+                <ul class="nav nav-pills bg-white p-2 rounded shadow-sm">
+                    <li class="nav-item">
+                        <button class="nav-link active" onclick="switchTab('services', this)">Додаткові послуги</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="switchTab('reviews', this)">Відгуки та Оцінки</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="switchTab('loyalty', this)">Картки лояльності</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="panel-services" class="panel row">
+            <div class="col-md-4">
+                <div class="card p-4">
+                    <h4>Додати послугу</h4>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">Назва послуги</label>
+                        <input type="text" id="service-name" class="form-control" placeholder="Наприклад, Трансфер">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Вартість</label>
+                        <input type="number" id="service-price" class="form-control" placeholder="0.00">
+                    </div>
+                    <button class="btn btn-primary w-100" style="background-color: #6c5ce7; border: none;" onclick="addService()">Зберегти</button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr><th>ID</th><th>Назва</th><th>Ціна</th><th>Дії</th></tr>
+                        </thead>
+                        <tbody id="services-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-reviews" class="panel row d-none">
+            <div class="col-md-4">
+                <div class="card p-4">
+                    <h4>Залишити відгук</h4>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">ID Апартаментів</label>
+                        <input type="number" id="review-apt" class="form-control" placeholder="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Оцінка (1-5)</label>
+                        <input type="number" id="review-rating" class="form-control" min="1" max="5" placeholder="5">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Коментар</label>
+                        <textarea id="review-comment" class="form-control" rows="3" placeholder="Ваше враження..."></textarea>
+                    </div>
+                    <button class="btn btn-primary w-100" style="background-color: #6c5ce7; border: none;" onclick="addReview()">Надіслати</button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr><th>Апартаменти</th><th>Рейтинг</th><th>Коментар</th><th>Дія</th></tr>
+                        </thead>
+                        <tbody id="reviews-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-loyalty" class="panel row d-none">
+            <div class="col-md-4">
+                <div class="card p-4">
+                    <h4>Створити картку</h4>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">ID користувача</label>
+                        <input type="number" id="card-user" class="form-control" placeholder="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Початкові бали</label>
+                        <input type="number" id="card-points" class="form-control" placeholder="0">
+                    </div>
+                    <button class="btn btn-primary w-100" style="background-color: #6c5ce7; border: none;" onclick="addCard()">Активувати</button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <div class="alert alert-info d-flex justify-content-between">
+                        <span>Всього карток: <strong id="stat-cards">0</strong></span>
+                        <span>Сума балів лояльності: <strong id="stat-points">0</strong></span>
+                    </div>
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr><th>ID</th><th>Користувач</th><th>Бали</th><th>Дія</th></tr>
+                        </thead>
+                        <tbody id="cards-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="toast-container">
+        <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-text">Операція успішна!</div>
+                <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/site.js"></script>
+    <script>loadAll();</script>
+</body>
+</html>

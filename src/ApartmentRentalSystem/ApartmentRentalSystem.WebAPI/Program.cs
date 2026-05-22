@@ -1,0 +1,27 @@
+using ApartmentRentalSystem.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<ApartmentContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ApartmentContext")));
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();

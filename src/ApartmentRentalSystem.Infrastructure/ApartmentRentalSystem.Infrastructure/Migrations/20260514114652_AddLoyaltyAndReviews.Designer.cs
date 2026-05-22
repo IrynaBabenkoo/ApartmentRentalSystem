@@ -3,6 +3,7 @@ using System;
 using ApartmentRentalSystem.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApartmentRentalSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApartmentContext))]
-    partial class ApartmentContextModelSnapshot : ModelSnapshot
+    [Migration("20260514114652_AddLoyaltyAndReviews")]
+    partial class AddLoyaltyAndReviews
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

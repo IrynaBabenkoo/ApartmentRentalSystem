@@ -23,9 +23,15 @@ public class ApartmentContext : DbContext
     public DbSet<TimeUnit> TimeUnits { get; set; }
     public DbSet<ReservationHistory> ReservationHistories { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
-
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<ApartmentAmenity> ApartmentAmenities { get; set; }
+
+    // Додані нові DbSet-и
+    public DbSet<LoyaltyCard> LoyaltyCards { get; set; }
+    public DbSet<LoyaltyTransaction> LoyaltyTransactions { get; set; }
+    public DbSet<Review> Reviews { get; set; }
+    public DbSet<AdditionalService> AdditionalServices { get; set; }
+    public DbSet<ReservationService> ReservationServices { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -125,6 +131,57 @@ public class ApartmentContext : DbContext
                 new Amenity { Id = 7, Name = "Телевізор" },
                 new Amenity { Id = 8, Name = "Дозволено з тваринами" }
             );
+        });
+
+        // Додані нові конфігурації
+        modelBuilder.Entity<LoyaltyCard>(e =>
+        {
+            e.HasOne(lc => lc.User)
+                .WithMany()
+                .HasForeignKey(lc => lc.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LoyaltyTransaction>(e =>
+        {
+            e.Property(x => x.Points).IsRequired();
+            e.Property(x => x.Description).HasMaxLength(500);
+            e.HasOne(lt => lt.Card)
+                .WithMany(lc => lc.Transactions)
+                .HasForeignKey(lt => lt.CardId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Review>(e =>
+        {
+            e.Property(x => x.Rating).IsRequired();
+            e.Property(x => x.Comment).HasMaxLength(1000);
+            e.HasOne(r => r.Reservation)
+                .WithMany()
+                .HasForeignKey(r => r.ReservationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(r => r.Author)
+                .WithMany()
+                .HasForeignKey(r => r.AuthorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AdditionalService>(e =>
+        {
+            e.Property(x => x.Name).IsRequired().HasMaxLength(200);
+            e.Property(x => x.Price).HasColumnType("decimal(10,2)");
+        });
+
+        modelBuilder.Entity<ReservationService>(e =>
+        {
+            e.HasOne(rs => rs.Reservation)
+                .WithMany()
+                .HasForeignKey(rs => rs.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(rs => rs.Service)
+                .WithMany(s => s.ReservationServices)
+                .HasForeignKey(rs => rs.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApartmentContext).Assembly);
