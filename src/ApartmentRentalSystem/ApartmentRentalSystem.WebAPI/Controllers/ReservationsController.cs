@@ -16,7 +16,6 @@ public class ReservationsController : ControllerBase
         _context = context;
     }
 
-    // Всі бронювання
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetAll()
     {
@@ -39,7 +38,6 @@ public class ReservationsController : ControllerBase
         return Ok(result);
     }
 
-    // Бронювання конкретного орендаря
     [HttpGet("guest/{guestId}")]
     public async Task<ActionResult<IEnumerable<object>>> GetByGuest(int guestId)
     {
@@ -61,7 +59,6 @@ public class ReservationsController : ControllerBase
         return Ok(result);
     }
 
-    // Бронювання апартаментів власника
     [HttpGet("host/{hostId}")]
     public async Task<ActionResult<IEnumerable<object>>> GetByHost(string hostId)
     {
@@ -84,7 +81,6 @@ public class ReservationsController : ControllerBase
         return Ok(result);
     }
 
-    // Одне бронювання
     [HttpGet("{id}")]
     public async Task<ActionResult<object>> GetById(int id)
     {
@@ -112,7 +108,6 @@ public class ReservationsController : ControllerBase
         });
     }
 
-    // Створити бронювання
     [HttpPost]
     public async Task<ActionResult> Create([FromBody] ReservationCreateDto dto)
     {
@@ -156,7 +151,6 @@ public class ReservationsController : ControllerBase
             new { reservation.Id, reservation.TotalPrice });
     }
 
-    // Скасувати бронювання
     [HttpPatch("{id}/cancel")]
     public async Task<IActionResult> Cancel(int id)
     {
@@ -172,7 +166,6 @@ public class ReservationsController : ControllerBase
         return Ok(new { reservation.Id, Status = "Скасовано" });
     }
 
-    // Видалити бронювання
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

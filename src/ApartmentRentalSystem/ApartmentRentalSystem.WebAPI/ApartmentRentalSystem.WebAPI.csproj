@@ -18,8 +18,4 @@
     <ProjectReference Include="..\..\ApartmentRentalSystem.Infrastructure\ApartmentRentalSystem.Infrastructure\ApartmentRentalSystem.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\NewFolder\" />
-  </ItemGroup>
-
 </Project>

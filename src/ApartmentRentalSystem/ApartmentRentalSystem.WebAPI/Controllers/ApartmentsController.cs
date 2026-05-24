@@ -16,7 +16,6 @@ public class ApartmentsController : ControllerBase
         _context = context;
     }
 
-    // Всі апартаменти з фільтрацією
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetAll(
         [FromQuery] string? city,
@@ -56,7 +55,6 @@ public class ApartmentsController : ControllerBase
         return Ok(result);
     }
 
-    // Один апартамент
     [HttpGet("{id}")]
     public async Task<ActionResult<object>> GetById(int id)
     {
@@ -86,7 +84,6 @@ public class ApartmentsController : ControllerBase
         });
     }
 
-    // Доступні дати
     [HttpGet("{id}/availability")]
     public async Task<ActionResult<object>> GetAvailability(int id)
     {
@@ -98,7 +95,6 @@ public class ApartmentsController : ControllerBase
         return Ok(new { apartmentId = id, bookedPeriods = reservations });
     }
 
-    // Апартаменти власника
     [HttpGet("host/{hostId}")]
     public async Task<ActionResult<IEnumerable<object>>> GetByHost(string hostId)
     {
@@ -121,7 +117,6 @@ public class ApartmentsController : ControllerBase
         return Ok(result);
     }
 
-    // Додати апартамент
     [HttpPost]
     public async Task<ActionResult> Create([FromBody] ApartmentCreateDto dto)
     {
@@ -143,7 +138,6 @@ public class ApartmentsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = apartment.Id }, new { apartment.Id });
     }
 
-    // Редагувати апартамент
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] ApartmentCreateDto dto)
     {
@@ -162,7 +156,6 @@ public class ApartmentsController : ControllerBase
         return NoContent();
     }
 
-    // Видалити апартамент
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -178,7 +171,6 @@ public class ApartmentsController : ControllerBase
         return NoContent();
     }
 
-    // Змінити активність (керування доступністю)
     [HttpPatch("{id}/toggle")]
     public async Task<IActionResult> ToggleActive(int id)
     {

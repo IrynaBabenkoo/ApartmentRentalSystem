@@ -16,7 +16,6 @@ public class PaymentsController : ControllerBase
         _context = context;
     }
 
-    // Всі платежі
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetAll()
     {
@@ -37,7 +36,6 @@ public class PaymentsController : ControllerBase
         return Ok(result);
     }
 
-    // Один платіж
     [HttpGet("{id}")]
     public async Task<ActionResult<object>> GetById(int id)
     {
@@ -61,7 +59,6 @@ public class PaymentsController : ControllerBase
         });
     }
 
-    // Оплатити бронювання
     [HttpPost]
     public async Task<ActionResult> Pay([FromBody] PaymentCreateDto dto)
     {
@@ -86,14 +83,12 @@ public class PaymentsController : ControllerBase
 
         _context.Payments.Add(payment);
 
-        // Змінюємо статус на "Підтверджено"
         var confirmedStatus = await _context.ReservationStatuses
             .FirstOrDefaultAsync(s => s.Name == "Підтверджено");
 
         if (confirmedStatus != null)
             reservation.StatusId = confirmedStatus.Id;
 
-        // Нараховуємо бали лояльності (1 бал за кожні 100 грн)
         var loyaltyCard = await _context.LoyaltyCards
             .FirstOrDefaultAsync(lc => lc.UserId == reservation.GuestId);
 
@@ -117,7 +112,6 @@ public class PaymentsController : ControllerBase
             new { payment.Id, payment.Amount, payment.PaidAt });
     }
 
-    // Методи оплати
     [HttpGet("methods")]
     public async Task<ActionResult<IEnumerable<object>>> GetMethods()
     {
@@ -127,7 +121,6 @@ public class PaymentsController : ControllerBase
         return Ok(methods);
     }
 
-    // Видалити платіж
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

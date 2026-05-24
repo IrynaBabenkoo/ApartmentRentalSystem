@@ -1,185 +1,833 @@
 ﻿<!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Система оренди житла — Адмін-панель сервісів</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Система оренди житла — клієнт Web API</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --bg: #f6f7fb;
+            --surface: #ffffff;
+            --surface-2: #fafbff;
+            --line: #e4e7f1;
+            --text: #252a3d;
+            --muted: #6d748c;
+            --primary: #6c63ff;
+            --primary-dark: #5a52ea;
+            --primary-soft: #f1efff;
+            --danger-soft: #fff4f4;
+            --success-soft: #f2fbf4;
+            --shadow: 0 10px 28px rgba(29, 36, 66, 0.08);
+            --radius: 18px;
+        }
+
         body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Tahoma, Arial, sans-serif;
         }
 
-        .navbar {
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 4px 14px rgba(32, 38, 61, 0.04);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
         }
 
-        .card {
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
+        .brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
         }
 
-        .table th {
-            background-color: #6c5ce7;
-            color: white;
+        .hero {
+            margin-top: 28px;
+            margin-bottom: 24px;
+            padding: 34px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f4ff 100%);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
         }
 
-        .nav-pills .nav-link.active {
-            background-color: #6c5ce7;
+            .hero h1 {
+                margin: 0 0 10px 0;
+                font-size: 2rem;
+                font-weight: 700;
+            }
+
+            .hero p {
+                margin: 0;
+                color: var(--muted);
+            }
+
+        .tabs-box,
+        .toolbar-box {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 10px;
+            margin-bottom: 24px;
         }
 
         .nav-pills .nav-link {
-            color: #6c5ce7;
+            color: var(--primary);
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 10px 16px;
+        }
+
+            .nav-pills .nav-link.active {
+                background-color: var(--primary);
+                color: #fff;
+            }
+
+        .panel-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            height: 100%;
+        }
+
+        .section-title {
+            margin-bottom: 8px;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .section-note {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            padding: 11px 14px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #bcb8ff;
+                box-shadow: 0 0 0 0.2rem rgba(108, 99, 255, 0.14);
+            }
+
+        .btn-main {
+            background: var(--primary);
+            border: 1px solid var(--primary);
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 10px 16px;
+        }
+
+            .btn-main:hover {
+                background: var(--primary-dark);
+                border-color: var(--primary-dark);
+                color: #fff;
+            }
+
+        .btn-soft {
+            background: var(--primary-soft);
+            border: 1px solid #d8d4ff;
+            color: var(--primary-dark);
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .btn-outline-danger,
+        .btn-outline-secondary,
+        .btn-outline-primary,
+        .btn-soft {
+            border-radius: 10px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table thead th {
+                background: var(--primary-soft);
+                color: var(--text);
+                border-bottom: 1px solid var(--line);
+                font-weight: 700;
+                white-space: nowrap;
+            }
+
+            .table td,
+            .table th {
+                vertical-align: middle;
+                border-color: var(--line);
+            }
+
+        .soft-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .stat-box {
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.92rem;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 22px 8px;
+        }
+
+        .apartment-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 18px;
+            height: 100%;
+        }
+
+        .apartment-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .apartment-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .apartment-price {
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-top: 10px;
+        }
+
+        .result-box {
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px;
+            min-height: 64px;
+            color: var(--text);
+        }
+
+        .auth-card {
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .hero-actions {
+            margin-top: 18px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .user-chip {
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         .toast-container {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1055;
+            top: 18px;
+            right: 18px;
+            z-index: 1080;
+        }
+
+        @media (max-width: 992px) {
+            .hero {
+                padding: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
+    <header class="topbar">
+        <div class="container py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="brand">Система оренди житла</div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="#">Apartment Rental API Panel</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="row text-center mb-4">
-            <div class="col">
-                <h1 class="display-5" id="page-title">Додаткові послуги</h1>
-                <p class="text-muted">Керування новими сутностями Лабораторної роботи №2 через Web API</p>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div id="current-user-chip" class="user-chip hidden"></div>
+                <button id="btn-open-login" class="btn btn-soft" data-bs-toggle="modal" data-bs-target="#loginModal">Увійти</button>
+                <button id="btn-open-register" class="btn btn-main" data-bs-toggle="modal" data-bs-target="#registerModal">Зареєструватися</button>
+                <button id="btn-logout" class="btn btn-outline-secondary hidden" onclick="logoutUser()">Вийти</button>
             </div>
         </div>
+    </header>
 
-        <div class="row mb-4">
-            <div class="col d-flex justify-content-center">
-                <ul class="nav nav-pills bg-white p-2 rounded shadow-sm">
-                    <li class="nav-item">
-                        <button class="nav-link active" onclick="switchTab('services', this)">Додаткові послуги</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" onclick="switchTab('reviews', this)">Відгуки та Оцінки</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" onclick="switchTab('loyalty', this)">Картки лояльності</button>
-                    </li>
-                </ul>
+    <main class="container pb-4">
+        <section class="hero">
+            <h1 id="page-title">Пошук житла</h1>
+            <p id="page-subtitle">Пошук, бронювання, додаткові послуги, відгуки та бонусний рахунок у єдиному клієнтському інтерфейсі.</p>
+            <div class="hero-actions" id="guest-hero-actions">
+                <button class="btn btn-main" onclick="openTabByName('public-search')">Переглянути апартаменти</button>
+                <button class="btn btn-soft" data-bs-toggle="modal" data-bs-target="#registerModal">Створити обліковий запис</button>
             </div>
+        </section>
+
+        <div class="tabs-box">
+            <ul class="nav nav-pills justify-content-center gap-2 flex-wrap" id="main-tabs">
+                <li class="nav-item">
+                    <button class="nav-link active" data-tab="public-search" onclick="switchTab('public-search', this)">Пошук житла</button>
+                </li>
+
+                <li class="nav-item guest-only hidden">
+                    <button class="nav-link" data-tab="guest-reservations" onclick="switchTab('guest-reservations', this)">Мої бронювання</button>
+                </li>
+
+                <li class="nav-item guest-only hidden">
+                    <button class="nav-link" data-tab="guest-loyalty" onclick="switchTab('guest-loyalty', this)">Бонусний рахунок</button>
+                </li>
+
+                <li class="nav-item host-only hidden">
+                    <button class="nav-link" data-tab="host-apartments" onclick="switchTab('host-apartments', this)">Мої апартаменти</button>
+                </li>
+
+                <li class="nav-item host-only hidden">
+                    <button class="nav-link" data-tab="host-reservations" onclick="switchTab('host-reservations', this)">Бронювання апартаментів</button>
+                </li>
+
+                <li class="nav-item host-only hidden">
+                    <button class="nav-link" data-tab="host-services" onclick="switchTab('host-services', this)">Додаткові послуги</button>
+                </li>
+
+                <li class="nav-item">
+                    <button class="nav-link" data-tab="reviews" onclick="switchTab('reviews', this)">Відгуки</button>
+                </li>
+            </ul>
         </div>
 
-        <div id="panel-services" class="panel row">
-            <div class="col-md-4">
-                <div class="card p-4">
-                    <h4>Додати послугу</h4>
-                    <hr>
-                    <div class="mb-3">
-                        <label class="form-label">Назва послуги</label>
-                        <input type="text" id="service-name" class="form-control" placeholder="Наприклад, Трансфер">
+        <!-- PUBLIC SEARCH -->
+        <section id="panel-public-search" class="panel">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="panel-card">
+                        <div class="section-title">Пошук і фільтрація житла</div>
+                        <p class="section-note">Пошук виконується через метод отримання списку апартаментів із параметрами фільтрації.</p>
+
+                        <div class="mb-3">
+                            <label class="form-label">Місто</label>
+                            <input type="text" id="filter-city" class="form-control" placeholder="Наприклад, Київ">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Мінімальна кількість гостей</label>
+                            <input type="number" id="filter-guests" class="form-control" placeholder="Наприклад, 2">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Лише активні</label>
+                            <select id="filter-active" class="form-select">
+                                <option value="">Не враховувати</option>
+                                <option value="true">Так</option>
+                                <option value="false">Ні</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-main w-100 mb-2" onclick="loadPublicApartments()">Застосувати фільтр</button>
+                        <button class="btn btn-outline-secondary w-100" onclick="resetPublicFilters()">Скинути фільтр</button>
+
+                        <hr>
+
+                        <div class="section-title">Перевірка доступності</div>
+                        <p class="section-note">Вкажіть ID апартаменту для перегляду заброньованих періодів.</p>
+
+                        <div class="mb-3">
+                            <label class="form-label">ID апартаменту</label>
+                            <input type="number" id="availability-id" class="form-control" placeholder="Наприклад, 16">
+                        </div>
+
+                        <button class="btn btn-main w-100 mb-3" onclick="checkAvailability()">Перевірити доступність</button>
+                        <div class="result-box" id="availability-result">Тут буде відображено інформацію про доступність апартаменту.</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Вартість</label>
-                        <input type="number" id="service-price" class="form-control" placeholder="0.00">
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="panel-card">
+                        <div class="section-title">Список апартаментів</div>
+                        <p class="section-note">Картки формуються на основі відповіді методу `GET /api/Apartments`.</p>
+                        <div class="row g-3" id="public-apartments-list"></div>
                     </div>
-                    <button class="btn btn-primary w-100" style="background-color: #6c5ce7; border: none;" onclick="addService()">Зберегти</button>
                 </div>
             </div>
-            <div class="col-md-8">
-                <div class="card p-4">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr><th>ID</th><th>Назва</th><th>Ціна</th><th>Дії</th></tr>
-                        </thead>
-                        <tbody id="services-list"></tbody>
-                    </table>
+        </section>
+
+        <!-- GUEST RESERVATIONS -->
+        <section id="panel-guest-reservations" class="panel hidden">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="panel-card">
+                        <div class="section-title">Створення бронювання</div>
+                        <p class="section-note">Орендар може створити бронювання для вибраного апартаменту.</p>
+
+                        <div class="mb-3">
+                            <label class="form-label">ID апартаменту</label>
+                            <input type="number" id="reservation-apartment-id" class="form-control" placeholder="Наприклад, 16">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Дата початку</label>
+                            <input type="datetime-local" id="reservation-start" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Дата завершення</label>
+                            <input type="datetime-local" id="reservation-end" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Кількість одиниць</label>
+                            <input type="number" id="reservation-units" class="form-control" placeholder="Наприклад, 3">
+                        </div>
+
+                        <button class="btn btn-main w-100 mb-3" onclick="createReservation()">Створити бронювання</button>
+
+                        <hr>
+
+                        <div class="section-title">Оплата бронювання</div>
+                        <p class="section-note">Після вибору бронювання можна виконати оплату та отримати бали лояльності.</p>
+
+                        <div class="mb-3">
+                            <label class="form-label">ID бронювання</label>
+                            <input type="number" id="payment-reservation-id" class="form-control" placeholder="Наприклад, 5">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Метод оплати</label>
+                            <select id="payment-method-id" class="form-select"></select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Сума</label>
+                            <input type="number" id="payment-amount" class="form-control" placeholder="Наприклад, 6000">
+                        </div>
+
+                        <button class="btn btn-main w-100" onclick="payReservation()">Оплатити</button>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="panel-card">
+                        <div class="section-title">Мої бронювання</div>
+                        <p class="section-note">Список формується через метод `GET /api/Reservations/guest/{guestId}`.</p>
+
+                        <div class="table-wrap">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Апартамент</th>
+                                        <th>Місто</th>
+                                        <th>Період</th>
+                                        <th>Вартість</th>
+                                        <th>Статус</th>
+                                        <th>Дії</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="guest-reservations-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GUEST LOYALTY -->
+        <section id="panel-guest-loyalty" class="panel hidden">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="panel-card">
+                        <div class="section-title">Мій бонусний рахунок</div>
+                        <p class="section-note">Інформація завантажується з картки лояльності користувача.</p>
+
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">ID картки</div>
+                                <div class="stat-value" id="guest-card-id">—</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Нараховано балів</div>
+                                <div class="stat-value" id="guest-card-points">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">ID користувача</div>
+                                <div class="stat-value" id="guest-card-user">—</div>
+                            </div>
+                        </div>
+
+                        <div class="result-box">
+                            Бонусні бали автоматично нараховуються після оплати бронювання: 1 бал за кожні 100 грн.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="panel-card">
+                        <div class="section-title">Додаткові послуги</div>
+                        <p class="section-note">Орендар може переглядати доступні додаткові послуги.</p>
+
+                        <div class="table-wrap">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Назва</th>
+                                        <th>Вартість</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="guest-services-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOST APARTMENTS -->
+        <section id="panel-host-apartments" class="panel hidden">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="panel-card">
+                        <div class="section-title" id="host-apartment-form-title">Додавання апартаменту</div>
+                        <p class="section-note">Власник може створювати, редагувати та видаляти свої апартаменти.</p>
+
+                        <input type="hidden" id="host-apartment-edit-id">
+
+                        <div class="mb-3">
+                            <label class="form-label">Назва</label>
+                            <input type="text" id="host-apartment-title" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Місто</label>
+                            <input type="text" id="host-apartment-city" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Адреса</label>
+                            <input type="text" id="host-apartment-address" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Максимум гостей</label>
+                            <input type="number" id="host-apartment-guests" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">ID типу житла</label>
+                            <input type="number" id="host-apartment-housing-type" class="form-control" placeholder="Наприклад, 1">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Площа</label>
+                            <input type="number" step="0.01" id="host-apartment-area" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Опис</label>
+                            <textarea id="host-apartment-description" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-main" onclick="saveHostApartment()">Зберегти апартамент</button>
+                            <button class="btn btn-outline-secondary" onclick="clearHostApartmentForm()">Очистити форму</button>
+                        </div>
+
+                        <hr>
+
+                        <div class="result-box">
+                            Додавання фото зараз не підтримується бекендом, оскільки API не приймає файл або шлях до зображення під час створення апартаменту.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="panel-card">
+                        <div class="section-title">Мої апартаменти</div>
+                        <p class="section-note">Список формується через метод `GET /api/Apartments/host/{hostId}`.</p>
+
+                        <div class="table-wrap">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Назва</th>
+                                        <th>Місто</th>
+                                        <th>Тип</th>
+                                        <th>Ціна</th>
+                                        <th>Активність</th>
+                                        <th>Дії</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="host-apartments-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOST RESERVATIONS -->
+        <section id="panel-host-reservations" class="panel hidden">
+            <div class="row g-4">
+                <div class="col-lg-12">
+                    <div class="panel-card">
+                        <div class="section-title">Бронювання моїх апартаментів</div>
+                        <p class="section-note">Власник може переглядати бронювання, створені для його житла.</p>
+
+                        <div class="table-wrap">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Апартамент</th>
+                                        <th>Орендар</th>
+                                        <th>Телефон</th>
+                                        <th>Період</th>
+                                        <th>Вартість</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="host-reservations-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOST SERVICES -->
+        <section id="panel-host-services" class="panel hidden">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="panel-card">
+                        <div class="section-title" id="service-form-title">Додавання послуги</div>
+                        <p class="section-note">Власник може створювати та видаляти додаткові послуги.</p>
+
+                        <input type="hidden" id="service-edit-id">
+
+                        <div class="mb-3">
+                            <label class="form-label">Назва послуги</label>
+                            <input type="text" id="service-name" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Вартість</label>
+                            <input type="number" id="service-price" class="form-control">
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-main" onclick="saveService()">Зберегти послугу</button>
+                            <button class="btn btn-outline-secondary" onclick="clearServiceForm()">Очистити форму</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="panel-card">
+                        <div class="section-title">Список додаткових послуг</div>
+                        <p class="section-note">Послуги відображаються та редагуються через API.</p>
+
+                        <div class="table-wrap">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Назва</th>
+                                        <th>Вартість</th>
+                                        <th>Дії</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="host-services-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- REVIEWS -->
+        <section id="panel-reviews" class="panel hidden">
+            <div class="row g-4">
+                <div class="col-lg-4 guest-only hidden">
+                    <div class="panel-card">
+                        <div class="section-title">Створення відгуку</div>
+                        <p class="section-note">Через цей контролер створення йде по сирій сутності `Review`, тому форма працюватиме тільки якщо структура збігається з моделлю в БД.</p>
+
+                        <div class="mb-3">
+                            <label class="form-label">ID бронювання</label>
+                            <input type="number" id="review-reservation-id" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Оцінка</label>
+                            <input type="number" id="review-rating" class="form-control" min="1" max="5">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Коментар</label>
+                            <textarea id="review-comment" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <button class="btn btn-main w-100" onclick="createReview()">Надіслати відгук</button>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="panel-card">
+                        <div class="section-title">Список відгуків</div>
+                        <p class="section-note">Відгуки завантажуються з `GET /api/Reviews`.</p>
+
+                        <div class="table-wrap">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Оцінка</th>
+                                        <th>Коментар</th>
+                                        <th>Створено</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reviews-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- LOGIN MODAL -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content auth-card border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title">Вхід у систему</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="example@test.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="Введіть пароль">
+                    </div>
+                    <button class="btn btn-main w-100" onclick="loginUser()">Увійти</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div id="panel-reviews" class="panel row d-none">
-            <div class="col-md-4">
-                <div class="card p-4">
-                    <h4>Залишити відгук</h4>
-                    <hr>
-                    <div class="mb-3">
-                        <label class="form-label">ID Апартаментів</label>
-                        <input type="number" id="review-apt" class="form-control" placeholder="1">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Оцінка (1-5)</label>
-                        <input type="number" id="review-rating" class="form-control" min="1" max="5" placeholder="5">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Коментар</label>
-                        <textarea id="review-comment" class="form-control" rows="3" placeholder="Ваше враження..."></textarea>
-                    </div>
-                    <button class="btn btn-primary w-100" style="background-color: #6c5ce7; border: none;" onclick="addReview()">Надіслати</button>
+    <!-- REGISTER MODAL -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content auth-card border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title">Реєстрація користувача</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
                 </div>
-            </div>
-            <div class="col-md-8">
-                <div class="card p-4">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr><th>Апартаменти</th><th>Рейтинг</th><th>Коментар</th><th>Дія</th></tr>
-                        </thead>
-                        <tbody id="reviews-list"></tbody>
-                    </table>
+                <div class="modal-body pt-2">
+                    <div class="mb-3">
+                        <label class="form-label">ПІБ</label>
+                        <input type="text" id="register-fullname" class="form-control" placeholder="Введіть ім’я та прізвище">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="register-email" class="form-control" placeholder="example@test.com">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Телефон</label>
+                        <input type="text" id="register-phone" class="form-control" placeholder="+380...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Роль</label>
+                        <select id="register-role" class="form-select">
+                            <option value="1">Орендар</option>
+                            <option value="2">Власник</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" id="register-password" class="form-control" placeholder="Введіть пароль">
+                    </div>
+
+                    <button class="btn btn-main w-100" onclick="registerUser()">Зареєструвати</button>
                 </div>
             </div>
         </div>
-
-        <div id="panel-loyalty" class="panel row d-none">
-            <div class="col-md-4">
-                <div class="card p-4">
-                    <h4>Створити картку</h4>
-                    <hr>
-                    <div class="mb-3">
-                        <label class="form-label">ID користувача</label>
-                        <input type="number" id="card-user" class="form-control" placeholder="1">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Початкові бали</label>
-                        <input type="number" id="card-points" class="form-control" placeholder="0">
-                    </div>
-                    <button class="btn btn-primary w-100" style="background-color: #6c5ce7; border: none;" onclick="addCard()">Активувати</button>
-                </div>
-            </div>
-            <div class="col-md-8">
-                <div class="card p-4">
-                    <div class="alert alert-info d-flex justify-content-between">
-                        <span>Всього карток: <strong id="stat-cards">0</strong></span>
-                        <span>Сума балів лояльності: <strong id="stat-points">0</strong></span>
-                    </div>
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr><th>ID</th><th>Користувач</th><th>Бали</th><th>Дія</th></tr>
-                        </thead>
-                        <tbody id="cards-list"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <div class="toast-container">
         <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
-                <div class="toast-body" id="toast-text">Операція успішна!</div>
-                <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-dismiss="toast" aria-label="Close"></button>
+                <div class="toast-body" id="toast-text">Операція виконана успішно.</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрити"></button>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/site.js"></script>
-    <script>loadAll();</script>
+    <script src="js/site.js?v=4"></script>
 </body>
 </html>
