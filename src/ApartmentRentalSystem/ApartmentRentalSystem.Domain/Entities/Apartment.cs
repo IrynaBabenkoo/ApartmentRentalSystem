@@ -9,7 +9,7 @@ public class Apartment : Entity, IAggregateRoot
     public string? ImagePath { get; set; }
 
     [Display(Name = "Власник")]
-    public string HostId { get; set; } = string.Empty;
+    public int HostId { get; set; }
 
     [Display(Name = "Тип житла")]
     public int HousingTypeId { get; set; }
@@ -42,7 +42,7 @@ public class Apartment : Entity, IAggregateRoot
     public bool IsActive { get; set; }
 
     [Display(Name = "Власник")]
-    public virtual IdentityUser Host { get; set; } = null!;
+    public virtual User Host { get; set; } = null!;
 
     [Display(Name = "Категорія")]
     public virtual HousingType HousingType { get; set; } = null!;

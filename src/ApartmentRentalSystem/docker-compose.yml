@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  apartment-postgres:
+    image: postgres:16
+    container_name: apartment-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ApartmentRentalDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - apartment_postgres_data:/var/lib/postgresql/data
+
+  apartment-api:
+    build:
+      context: ..
+      dockerfile: ApartmentRentalSystem/ApartmentRentalSystem.WebAPI/Dockerfile
+    container_name: apartment-api
+    restart: always
+    depends_on:
+      - apartment-postgres
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__ApartmentContext: Host=apartment-postgres;Port=5432;Database=ApartmentRentalDb;Username=postgres;Password=postgres
+    ports:
+      - "7098:8080"
+
+volumes:
+  apartment_postgres_data:

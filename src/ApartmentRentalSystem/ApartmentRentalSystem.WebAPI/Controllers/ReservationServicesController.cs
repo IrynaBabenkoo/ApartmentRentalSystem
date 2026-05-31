@@ -17,49 +17,158 @@ public class ReservationServicesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ReservationService>>> GetAll()
+    public async Task<ActionResult<IEnumerable<object>>> GetAll()
     {
-        return await _context.ReservationServices
-            .Include(rs => rs.Reservation)
+        var result = await _context.ReservationServices
             .Include(rs => rs.Service)
+            .Select(rs => new
+            {
+                rs.Id,
+                rs.ReservationId,
+                rs.ServiceId,
+                ServiceName = rs.Service.Name,
+                ServicePrice = rs.Service.Price
+            })
             .ToListAsync();
+
+        return Ok(result);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ReservationService>> GetById(int id)
+    [HttpGet("reservation/{reservationId}")]
+    public async Task<ActionResult<IEnumerable<object>>> GetByReservation(int reservationId)
     {
-        var rs = await _context.ReservationServices
-            .Include(rs => rs.Reservation)
+        var result = await _context.ReservationServices
             .Include(rs => rs.Service)
-            .FirstOrDefaultAsync(rs => rs.Id == id);
-        if (rs == null) return NotFound();
-        return rs;
+            .Where(rs => rs.ReservationId == reservationId)
+            .Select(rs => new
+            {
+                rs.Id,
+                rs.ReservationId,
+                rs.ServiceId,
+                ServiceName = rs.Service.Name,
+                ServicePrice = rs.Service.Price
+            })
+            .ToListAsync();
+
+        return Ok(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ReservationService>> Create(ReservationService rs)
+    public async Task<ActionResult<object>> Create([FromBody] ReservationServiceCreateDto dto)
     {
-        _context.ReservationServices.Add(rs);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = rs.Id }, rs);
-    }
+        if (dto.ReservationId <= 0)
+        {
+            return BadRequest("Бронювання не вибрано.");
+        }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, ReservationService rs)
-    {
-        if (id != rs.Id) return BadRequest();
-        _context.Entry(rs).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        return NoContent();
+        if (dto.ServiceId <= 0)
+        {
+            return BadRequest("Додаткову послугу не вибрано.");
+        }
+
+        var reservation = await _context.Reservations
+            .FirstOrDefaultAsync(r => r.Id == dto.ReservationId);
+
+        if (reservation == null)
+        {
+            return NotFound("Бронювання не знайдено.");
+        }
+
+        var service = await _context.AdditionalServices
+            .FirstOrDefaultAsync(s => s.Id == dto.ServiceId);
+
+        if (service == null)
+        {
+            return NotFound("Додаткову послугу не знайдено.");
+        }
+
+        var alreadyExists = await _context.ReservationServices
+            .AnyAsync(rs =>
+                rs.ReservationId == dto.ReservationId &&
+                rs.ServiceId == dto.ServiceId);
+
+        if (!alreadyExists)
+        {
+            var reservationService = new ReservationService
+            {
+                ReservationId = dto.ReservationId,
+                ServiceId = dto.ServiceId
+            };
+
+            _context.ReservationServices.Add(reservationService);
+            await _context.SaveChangesAsync();
+        }
+
+        var totalPrice = await RecalculateReservationTotalAsync(dto.ReservationId);
+
+        return Ok(new
+        {
+            ReservationId = dto.ReservationId,
+            ServiceId = dto.ServiceId,
+            ServiceName = service.Name,
+            ServicePrice = service.Price,
+            TotalPrice = totalPrice
+        });
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var rs = await _context.ReservationServices.FindAsync(id);
-        if (rs == null) return NotFound();
-        _context.ReservationServices.Remove(rs);
+        var reservationService = await _context.ReservationServices
+            .FirstOrDefaultAsync(rs => rs.Id == id);
+
+        if (reservationService == null)
+        {
+            return NotFound();
+        }
+
+        var reservationId = reservationService.ReservationId;
+
+        _context.ReservationServices.Remove(reservationService);
         await _context.SaveChangesAsync();
+
+        await RecalculateReservationTotalAsync(reservationId);
+
         return NoContent();
     }
+
+    private async Task<decimal> RecalculateReservationTotalAsync(int reservationId)
+    {
+        var reservation = await _context.Reservations
+            .FirstOrDefaultAsync(r => r.Id == reservationId);
+
+        if (reservation == null)
+        {
+            return 0m;
+        }
+
+        decimal basePrice;
+
+        if (reservation.UnitAmountSnapshot.HasValue)
+        {
+            basePrice = reservation.UnitAmountSnapshot.Value * reservation.UnitsCount;
+        }
+        else
+        {
+            basePrice = reservation.TotalPrice ?? 0m;
+        }
+
+        var servicesTotal = await _context.ReservationServices
+            .Include(rs => rs.Service)
+            .Where(rs => rs.ReservationId == reservationId)
+            .SumAsync(rs => rs.Service.Price);
+
+        reservation.TotalPrice = basePrice + servicesTotal;
+
+        await _context.SaveChangesAsync();
+
+        return reservation.TotalPrice ?? 0m;
+    }
+}
+
+public class ReservationServiceCreateDto
+{
+    public int ReservationId { get; set; }
+
+    public int ServiceId { get; set; }
 }
